@@ -31,23 +31,141 @@ type RaftSurfstore struct {
 }
 
 func (s *RaftSurfstore) GetFileInfoMap(ctx context.Context, empty *emptypb.Empty) (*FileInfoMap, error) {
+	s.isCrashedMutex.RLock()
+	s.isLeaderMutex.RLock()
+	leader := s.isLeader
+	crashed := s.isCrashed
+	s.isCrashedMutex.RUnlock()
+	s.isLeaderMutex.RUnlock()
+	if crashed {
+		return nil, ERR_SERVER_CRASHED
+	}
+	if !leader {
+		return nil, ERR_NOT_LEADER
+	}
 
-	return nil, nil
+	for {
+		suc, _ := s.SendHeartbeat(ctx, &emptypb.Empty{})
+		if suc.Flag {
+			break
+		}
+	}
+	return s.GetFileInfoMap(ctx, &emptypb.Empty{})
 }
 
 func (s *RaftSurfstore) GetBlockStoreMap(ctx context.Context, hashes *BlockHashes) (*BlockStoreMap, error) {
-	panic("todo")
-	return nil, nil
+	s.isCrashedMutex.RLock()
+	s.isLeaderMutex.RLock()
+	leader := s.isLeader
+	crashed := s.isCrashed
+	s.isCrashedMutex.RUnlock()
+	s.isLeaderMutex.RUnlock()
+	if crashed {
+		return nil, ERR_SERVER_CRASHED
+	}
+	if !leader {
+		return nil, ERR_NOT_LEADER
+	}
+
+	for {
+		suc, _ := s.SendHeartbeat(ctx, &emptypb.Empty{})
+		if suc.Flag {
+			break
+		}
+	}
+
+	return s.GetBlockStoreMap(ctx, hashes)
 }
 
 func (s *RaftSurfstore) GetBlockStoreAddrs(ctx context.Context, empty *emptypb.Empty) (*BlockStoreAddrs, error) {
-	panic("todo")
-	return nil, nil
+	s.isCrashedMutex.RLock()
+	s.isLeaderMutex.RLock()
+	leader := s.isLeader
+	crashed := s.isCrashed
+	s.isCrashedMutex.RUnlock()
+	s.isLeaderMutex.RUnlock()
+	if crashed {
+		return nil, ERR_SERVER_CRASHED
+	}
+	if !leader {
+		return nil, ERR_NOT_LEADER
+	}
+
+	for {
+		suc, _ := s.SendHeartbeat(ctx, &emptypb.Empty{})
+		if suc.Flag {
+			break
+		}
+	}
+	return s.GetBlockStoreAddrs(ctx, &emptypb.Empty{})
 }
 
 func (s *RaftSurfstore) UpdateFile(ctx context.Context, filemeta *FileMetaData) (*Version, error) {
-	panic("todo")
-	return nil, nil
+	s.isCrashedMutex.RLock()
+	s.isLeaderMutex.RLock()
+	leader := s.isLeader
+	crashed := s.isCrashed
+	s.isCrashedMutex.RUnlock()
+	s.isLeaderMutex.RUnlock()
+	if crashed {
+		return nil, ERR_SERVER_CRASHED
+	}
+	if !leader {
+		return nil,
+			ERR_NOT_LEADER
+	}
+	var tmp2 UpdateOperation
+	tmp2.FileMetaData = filemeta
+	suc := false
+	cnt := 1
+	servedServers := make([]int, len(s.config.RaftAddrs))
+	tmp2.Term = s.term
+	s.log = append(s.log, &tmp2)
+	logIndex := make([]int, len(s.config.RaftAddrs))
+	tmp := make(chan AppendEntryOutput)
+	servedServers[int(s.serverId)] = 1
+
+	for cnt <= len(s.config.RaftAddrs)/2 {
+		resp := 0
+		for i := range s.config.RaftAddrs {
+			logIndex[i] += 1
+			if i == int(s.serverId) || servedServers[i] == 1 {
+				continue
+			} else {
+				data := &AppendEntryInput{
+					Entries:      s.log[len(s.log)-logIndex[i] : len(s.log)],
+					Term:         s.term,
+					PrevLogIndex: int64(len(s.log) - logIndex[i] - 1),
+					PrevLogTerm:  s.log[int(len(s.log))-logIndex[i]-1].Term,
+					LeaderCommit: s.commitIndex,
+				}
+				resp++
+				go append_client(data, s, s.config.RaftAddrs[i], tmp)
+			}
+		}
+
+		for i := 0; i < resp; i++ {
+			ret := <-tmp
+			if ret.Success {
+				servedServers[ret.ServerId] = 1
+				cnt += 1
+			} else {
+				if ret.Term > s.term {
+					s.isLeaderMutex.Lock()
+					s.isLeader = false
+					s.isLeaderMutex.Unlock()
+					return nil, ERR_NOT_LEADER
+				} else {
+					servedServers[ret.ServerId] = 2
+				}
+			}
+		}
+	}
+
+	s.commitIndex += 1
+	s.lastApplied += 1
+	return s.metaStore.UpdateFile(ctx, filemeta)
+
 }
 
 // 1. Reply false if term < currentTerm (§5.1)
@@ -188,6 +306,13 @@ func (s *RaftSurfstore) SendHeartbeat(ctx context.Context, _ *emptypb.Empty) (*S
 		ret := <-tmp
 		if ret.Success {
 			cnt += 1
+		} else {
+			s.isLeaderMutex.Lock()
+			s.isLeader = false
+			s.isLeaderMutex.Unlock()
+			if ret.Term > s.term {
+				return nil, ERR_NOT_LEADER
+			}
 		}
 	}
 
@@ -202,7 +327,8 @@ func append_client(data_to_send *AppendEntryInput, s *RaftSurfstore, address_to_
 	conn, err := grpc.Dial(address_to_send, grpc.WithInsecure())
 	//var appendEntryOutput AppendEntryOutput
 	appendEntryOutput := AppendEntryOutput{
-		Success: false,
+		Success:  false,
+		ServerId: -1,
 	}
 	if err != nil {
 		tmp <- appendEntryOutput
