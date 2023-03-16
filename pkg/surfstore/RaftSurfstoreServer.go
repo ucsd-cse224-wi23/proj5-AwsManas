@@ -116,7 +116,6 @@ func (s *RaftSurfstore) UpdateFile(ctx context.Context, filemeta *FileMetaData) 
 	}
 	var tmp2 UpdateOperation
 	tmp2.FileMetaData = filemeta
-	suc := false
 	cnt := 1
 	servedServers := make([]int, len(s.config.RaftAddrs))
 	tmp2.Term = s.term
