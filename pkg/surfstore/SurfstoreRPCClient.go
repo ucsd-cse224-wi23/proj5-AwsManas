@@ -2,6 +2,7 @@ package surfstore
 
 import (
 	context "context"
+	"fmt"
 	"time"
 
 	grpc "google.golang.org/grpc"
@@ -142,7 +143,7 @@ func (surfClient *RPCClient) UpdateFile(fileMetaData *FileMetaData, latestVersio
 }
 
 func (surfClient *RPCClient) GetBlockStoreMap(blockHashesIn []string, blockStoreMap *map[string][]string) error {
-
+	fmt.Println("Total lines : ", len(surfClient.MetaStoreAddrs))
 	for i := range surfClient.MetaStoreAddrs {
 		conn, err := grpc.Dial(surfClient.MetaStoreAddrs[i], grpc.WithInsecure())
 
@@ -154,16 +155,16 @@ func (surfClient *RPCClient) GetBlockStoreMap(blockHashesIn []string, blockStore
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 
-		defer cancel()
-
 		block_store_mp, err := c.GetBlockStoreMap(ctx, &BlockHashes{Hashes: blockHashesIn})
 
 		if err != nil && err != ERR_NOT_LEADER && err != ERR_SERVER_CRASHED {
+			fmt.Println(err.Error())
 			conn.Close()
-			return err
+			continue
 		}
 
 		if err == nil {
+			print("here - no error", block_store_mp.BlockStoreMap)
 			tmp := block_store_mp.BlockStoreMap
 
 			tmp2 := make(map[string][]string)
@@ -176,6 +177,7 @@ func (surfClient *RPCClient) GetBlockStoreMap(blockHashesIn []string, blockStore
 		}
 
 		conn.Close()
+		cancel()
 	}
 	return nil
 }

@@ -101,7 +101,7 @@ func ClientSync(client RPCClient) {
 	for _, file_nm := range all_files_best_local {
 		var block_addr_map map[string][]string
 		client.GetBlockStoreMap(client_sync_files[file_nm].BlockHashList, &block_addr_map)
-		// fmt.Println("Get block addr map : ", block_addr_map)
+		fmt.Println("Get block addr map : ", block_addr_map)
 		for i := 0; i < len(client_sync_files[file_nm].BlockHashList); i++ {
 			var suc bool
 			bsa := getBlockStoreAddr(client_sync_files[file_nm].BlockHashList[i], block_addr_map)

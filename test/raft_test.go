@@ -28,7 +28,7 @@ func TestRaftSetLeader(t *testing.T) {
 			t.Fatalf("Could not get state")
 		}
 		if state.Term != int64(1) {
-			t.Fatalf("Server %d should be in term %d", idx, 1)
+			t.Fatalf("Server %d should be in term %d , found %d", idx, 1, state.Term)
 		}
 		if idx == leaderIdx {
 			// server should be the leader

@@ -54,6 +54,7 @@ func (m *MetaStore) GetBlockStoreMap(ctx context.Context, blockHashesIn *BlockHa
 	for k, v := range temp_map {
 		bsm.BlockStoreMap[k] = &BlockHashes{Hashes: v}
 	}
+	fmt.Println("BSM : ", bsm)
 	return &bsm, nil
 }
 func (m *MetaStore) GetBlockStoreAddrs(ctx context.Context, _ *emptypb.Empty) (*BlockStoreAddrs, error) {

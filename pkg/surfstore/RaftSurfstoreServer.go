@@ -118,11 +118,11 @@ func (s *RaftSurfstore) UpdateFile(ctx context.Context, filemeta *FileMetaData) 
 	var tmp2 UpdateOperation
 	tmp2.FileMetaData = filemeta
 	cnt := 1
-	servedServers := make([]int, len(s.config.RaftAddrs))
+	servedServers := make([]int, len(s.config.RaftAddrs)+1)
 	tmp2.Term = s.term
 	s.log = append(s.log, &tmp2)
 	logIndex := make([]int, len(s.config.RaftAddrs))
-	tmp := make(chan AppendEntryOutput)
+	tmp := make(chan *AppendEntryOutput)
 	servedServers[int(s.serverId)] = 1
 
 	for cnt <= len(s.config.RaftAddrs)/2 {
@@ -192,6 +192,7 @@ func (s *RaftSurfstore) AppendEntries(ctx context.Context, input *AppendEntryInp
 		out.ServerId = s.serverId
 		out.Success = false
 		out.Term = s.term
+		out.MatchedIndex = 0
 		return &out, nil
 	}
 
@@ -202,10 +203,12 @@ func (s *RaftSurfstore) AppendEntries(ctx context.Context, input *AppendEntryInp
 		out.ServerId = s.serverId
 		out.Success = false
 		out.Term = s.term
+		out.MatchedIndex = 0
 		return &out, nil
 	}
 
 	s.isLeader = false
+	s.term = input.Term
 	s.isCrashedMutex.RUnlock()
 	s.isLeaderMutex.Unlock()
 
@@ -243,6 +246,7 @@ func (s *RaftSurfstore) AppendEntries(ctx context.Context, input *AppendEntryInp
 		s.lastApplied = ss
 	}
 
+	fmt.Println("Returning this term : ", s.term, "Machine : ", s.serverId)
 	var out AppendEntryOutput
 	out.Success = true
 	out.Term = s.term
@@ -263,8 +267,8 @@ func (s *RaftSurfstore) SetLeader(ctx context.Context, _ *emptypb.Empty) (*Succe
 	s.isLeader = true
 	s.isCrashedMutex.RUnlock()
 	s.isLeaderMutex.Unlock()
-
-	s.term = s.term + 1
+	s.term += 1
+	fmt.Println(s.serverId, "Leader is in term : ", s.term)
 	return s.SendHeartbeat(ctx, &emptypb.Empty{})
 }
 func max(a int, b int) int {
@@ -288,23 +292,34 @@ func (s *RaftSurfstore) SendHeartbeat(ctx context.Context, _ *emptypb.Empty) (*S
 	if !leader {
 		return nil, ERR_NOT_LEADER
 	}
-	if len(s.log) == 0 {
-		s.log = append(s.log, &UpdateOperation{Term: 0})
-	}
-	tmp := make(chan AppendEntryOutput)
+
+	tmp := make(chan *AppendEntryOutput)
 	for i := range s.config.RaftAddrs {
 		if i == int(s.serverId) {
 			continue
 		} else {
-			data := &AppendEntryInput{
-				Entries:      make([]*UpdateOperation, 0),
-				Term:         s.term,
-				PrevLogIndex: int64(max(len(s.log)-1, 0)),
-				PrevLogTerm:  s.log[max(len(s.log)-1, 0)].Term,
-				LeaderCommit: s.commitIndex,
+			if len(s.log) == 0 {
+				data := &AppendEntryInput{
+					Entries:      make([]*UpdateOperation, 0),
+					Term:         s.term,
+					PrevLogIndex: 0,
+					PrevLogTerm:  0,
+					LeaderCommit: s.commitIndex,
+				}
+
+				go append_client(data, s, s.config.RaftAddrs[i], tmp)
+			} else {
+				data := &AppendEntryInput{
+					Entries:      make([]*UpdateOperation, 0),
+					Term:         s.term,
+					PrevLogIndex: int64(max(len(s.log)-1, 0)),
+					PrevLogTerm:  s.log[max(len(s.log)-1, 0)].Term,
+					LeaderCommit: s.commitIndex,
+				}
+
+				go append_client(data, s, s.config.RaftAddrs[i], tmp)
 			}
 
-			go append_client(data, s, s.config.RaftAddrs[i], tmp)
 		}
 	}
 
@@ -331,7 +346,7 @@ func (s *RaftSurfstore) SendHeartbeat(ctx context.Context, _ *emptypb.Empty) (*S
 	return &Success{Flag: suc}, nil
 }
 
-func append_client(data_to_send *AppendEntryInput, s *RaftSurfstore, address_to_send string, tmp chan AppendEntryOutput) {
+func append_client(data_to_send *AppendEntryInput, s *RaftSurfstore, address_to_send string, tmp chan *AppendEntryOutput) {
 	conn, err := grpc.Dial(address_to_send, grpc.WithInsecure())
 	//var appendEntryOutput AppendEntryOutput
 	appendEntryOutput := AppendEntryOutput{
@@ -339,7 +354,7 @@ func append_client(data_to_send *AppendEntryInput, s *RaftSurfstore, address_to_
 		ServerId: -1,
 	}
 	if err != nil {
-		tmp <- appendEntryOutput
+		tmp <- &appendEntryOutput
 		return
 	}
 
@@ -350,13 +365,15 @@ func append_client(data_to_send *AppendEntryInput, s *RaftSurfstore, address_to_
 
 	appendEntryOutput2, err := c.AppendEntries(ctx, data_to_send)
 
+	fmt.Println("Got this from append entries  : ", appendEntryOutput2)
+
 	if err != nil {
-		tmp <- appendEntryOutput
+		tmp <- &appendEntryOutput
 		conn.Close()
 		return
 	}
 
-	tmp <- *appendEntryOutput2
+	tmp <- appendEntryOutput2
 	conn.Close()
 	return
 }
