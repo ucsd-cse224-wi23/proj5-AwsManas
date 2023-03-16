@@ -2,6 +2,7 @@ package surfstore
 
 import (
 	context "context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -146,6 +147,7 @@ func (s *RaftSurfstore) UpdateFile(ctx context.Context, filemeta *FileMetaData) 
 		for i := 0; i < resp; i++ {
 			ret := <-tmp
 			if ret.Success {
+				fmt.Println(" Sucess  ---->", ret.ServerId)
 				servedServers[ret.ServerId] = 1
 				cnt += 1
 			} else {
@@ -208,7 +210,7 @@ func (s *RaftSurfstore) AppendEntries(ctx context.Context, input *AppendEntryInp
 	s.isLeaderMutex.Unlock()
 
 	//3
-	if s.log[input.PrevLogIndex].Term != input.PrevLogTerm {
+	if len(s.log) > 0 && int64(len(s.log)) != input.PrevLogIndex && s.log[input.PrevLogIndex].Term != input.PrevLogTerm {
 		s.log = s.log[0:input.PrevLogIndex]
 	}
 
@@ -265,7 +267,12 @@ func (s *RaftSurfstore) SetLeader(ctx context.Context, _ *emptypb.Empty) (*Succe
 	s.term = s.term + 1
 	return s.SendHeartbeat(ctx, &emptypb.Empty{})
 }
-
+func max(a int, b int) int {
+	if a >= b {
+		return a
+	}
+	return b
+}
 func (s *RaftSurfstore) SendHeartbeat(ctx context.Context, _ *emptypb.Empty) (*Success, error) {
 	s.isCrashedMutex.RLock()
 	s.isLeaderMutex.RLock()
@@ -281,7 +288,9 @@ func (s *RaftSurfstore) SendHeartbeat(ctx context.Context, _ *emptypb.Empty) (*S
 	if !leader {
 		return nil, ERR_NOT_LEADER
 	}
-
+	if len(s.log) == 0 {
+		s.log = append(s.log, &UpdateOperation{Term: 0})
+	}
 	tmp := make(chan AppendEntryOutput)
 	for i := range s.config.RaftAddrs {
 		if i == int(s.serverId) {
@@ -290,8 +299,8 @@ func (s *RaftSurfstore) SendHeartbeat(ctx context.Context, _ *emptypb.Empty) (*S
 			data := &AppendEntryInput{
 				Entries:      make([]*UpdateOperation, 0),
 				Term:         s.term,
-				PrevLogIndex: int64(len(s.log) - 1),
-				PrevLogTerm:  s.log[len(s.log)-1].Term,
+				PrevLogIndex: int64(max(len(s.log)-1, 0)),
+				PrevLogTerm:  s.log[max(len(s.log)-1, 0)].Term,
 				LeaderCommit: s.commitIndex,
 			}
 
