@@ -110,9 +110,10 @@ func (surfClient *RPCClient) GetFileInfoMap(serverFileInfoMap *map[string]*FileM
 
 		if err == nil {
 			*serverFileInfoMap = fileInfoMap.FileInfoMap
+			conn.Close()
+			return nil
 		}
 
-		conn.Close()
 	}
 	return nil
 }
@@ -144,9 +145,10 @@ func (surfClient *RPCClient) UpdateFile(fileMetaData *FileMetaData, latestVersio
 		}
 		if err == nil {
 			*latestVersion = verr.Version
+			conn.Close()
+			return nil
 		}
 
-		conn.Close()
 	}
 	return nil
 }
@@ -164,7 +166,7 @@ func (surfClient *RPCClient) GetBlockStoreMap(blockHashesIn []string, blockStore
 		c := NewRaftSurfstoreClient(conn)
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-
+		defer cancel()
 		block_store_mp, err2 := c.GetBlockStoreMap(ctx, &BlockHashes{Hashes: blockHashesIn})
 
 		if err2 != nil {
@@ -187,16 +189,16 @@ func (surfClient *RPCClient) GetBlockStoreMap(blockHashesIn []string, blockStore
 			}
 
 			*blockStoreMap = tmp2
+			conn.Close()
+			return nil
 		}
-
-		conn.Close()
-		cancel()
 	}
 	return nil
 }
 
 func (surfClient *RPCClient) GetBlockStoreAddrs(blockStoreAddrs *[]string) error {
 	for i := range surfClient.MetaStoreAddrs {
+		fmt.Println("GetBlockStoreAddrs in loop", i)
 		conn, err := grpc.Dial(surfClient.MetaStoreAddrs[i], grpc.WithInsecure())
 
 		if err != nil {
@@ -222,9 +224,9 @@ func (surfClient *RPCClient) GetBlockStoreAddrs(blockStoreAddrs *[]string) error
 
 		if err == nil {
 			*blockStoreAddrs = block_store_addrs.BlockStoreAddrs
+			conn.Close()
+			return nil
 		}
-
-		conn.Close()
 	}
 	return nil
 }

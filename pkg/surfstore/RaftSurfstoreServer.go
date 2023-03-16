@@ -48,13 +48,14 @@ func (s *RaftSurfstore) GetFileInfoMap(ctx context.Context, empty *emptypb.Empty
 
 	for {
 		suc, err := s.SendHeartbeat(ctx, &emptypb.Empty{})
+		fmt.Println("getFileInfoMap : got suc as ", suc.Flag)
 		if err != nil {
 			fmt.Println(err.Error())
 		} else if suc.Flag {
 			break
 		}
 	}
-	return s.GetFileInfoMap(ctx, &emptypb.Empty{})
+	return s.metaStore.GetFileInfoMap(ctx, &emptypb.Empty{})
 }
 
 func (s *RaftSurfstore) GetBlockStoreMap(ctx context.Context, hashes *BlockHashes) (*BlockStoreMap, error) {
@@ -74,12 +75,13 @@ func (s *RaftSurfstore) GetBlockStoreMap(ctx context.Context, hashes *BlockHashe
 
 	for {
 		suc, _ := s.SendHeartbeat(ctx, &emptypb.Empty{})
+		fmt.Println("getBlockStoreMap : got suc as ", suc.Flag)
 		if suc.Flag {
 			break
 		}
 	}
 
-	return s.GetBlockStoreMap(ctx, hashes)
+	return s.metaStore.GetBlockStoreMap(ctx, hashes)
 }
 
 func (s *RaftSurfstore) GetBlockStoreAddrs(ctx context.Context, empty *emptypb.Empty) (*BlockStoreAddrs, error) {
@@ -99,11 +101,12 @@ func (s *RaftSurfstore) GetBlockStoreAddrs(ctx context.Context, empty *emptypb.E
 
 	for {
 		suc, _ := s.SendHeartbeat(ctx, &emptypb.Empty{})
+		fmt.Println("getBlockStoreAddrs : got suc as ", suc.Flag)
 		if suc.Flag {
 			break
 		}
 	}
-	return s.GetBlockStoreAddrs(ctx, &emptypb.Empty{})
+	return s.metaStore.GetBlockStoreAddrs(ctx, &emptypb.Empty{})
 }
 
 func (s *RaftSurfstore) UpdateFile(ctx context.Context, filemeta *FileMetaData) (*Version, error) {
@@ -366,6 +369,7 @@ func (s *RaftSurfstore) SendHeartbeat(ctx context.Context, _ *emptypb.Empty) (*S
 		}
 	}
 
+	fmt.Println("Finished sending heartbeat - got ", cnt, "responses")
 	if cnt > len(s.config.RaftAddrs)/2 {
 		suc = true
 	}
