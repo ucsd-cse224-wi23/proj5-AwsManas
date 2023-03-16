@@ -1,112 +1,158 @@
-# Instructions to extend project 4
+# Scalable Surfstore
 
+## Extend your surfstore project
 1. Make a copy of your solution if you want to:
-```console
-mkdir proj5
-cp -r proj4/* proj5
-cd proj5
+```shell
+mkdir proj4
+cp -r proj3/* proj4
+cd proj4
 ```
 
-2. Rename all module paths from "proj4" to "proj5" (you may have more that are not shown here)
-```console
-$ grep -r proj4 ./
-cmd/SurfstoreServerExec/main.go:        "cse224/proj4/pkg/surfstore"
-cmd/SurfstoreClientExec/main.go:        "cse224/proj4/pkg/surfstore"
-go.mod:module cse224/proj4
+2. copy over consistent hashing files and new new .proto service defination
+```shell
+mkdir cmd/SurfstorePrintBlockMapping
+cp /yourPath/starter-code/cmd/SurfstorePrintBlockMapping/main.go cmd/SurfstorePrintBlockMapping/
+cp /yourPath/starter-code/pkg/surfstore/ConsistentHashRing.go pkg/surfstore
+cp /yourPath/starter-code/pkg/surfstore/SurfStore.proto pkg/surfstore
+cp /yourPath/starter-code/pkg/surfstore/SurfstoreInterfaces.go pkg/surfstore
 ```
 
-3. Copy over the given test cases
-```console
-mkdir test
-cp -r /path/to/proj5/starter-code/test/* test/
-```
+4. manually change MetaStore.go
+```diff
+type MetaStore struct {
+	FileMetaMap    map[string]*FileMetaData
+-	BlockStoreAddr string
++	BlockStoreAddrs    []string
++	ConsistentHashRing *ConsistentHashRing
+	UnimplementedMetaStoreServer
+}
 
-4. Copy over the Makefile and example config
-```console
-cp /path/to/proj5/starter-code/Makefile .
-cp /path/to/proj5/starter-code/example_config.txt .
-```
+-func (m *MetaStore) GetBlockStoreAddr(ctx context.Context, _ *emptypb.Empty) (*BlockStoreAddr, error) {
+-	panic("todo")
+-}
++func (m *MetaStore) GetBlockStoreMap(ctx context.Context, blockHashesIn *BlockHashes) (*BlockStoreMap, error) {
++	panic("todo")
++}
++
++func (m *MetaStore) GetBlockStoreAddrs(ctx context.Context, _ *emptypb.Empty) (*BlockStoreAddrs, error) {
++	panic("todo")
++}
+...
 
-5. Copy over Raft specific files
-```console
-mkdir cmd/SurfstoreRaftServerExec
-cp /path/to/proj5/starter-code/cmd/SurfstoreRaftServerExec/main.go cmd/SurfstoreRaftServerExec/
-cp /path/to/proj5/starter-code/pkg/surfstore/Raft* pkg/surfstore/
-cp /path/to/proj5/starter-code/pkg/surfstore/SurfStore.proto pkg/surfstore/
-```
-
-6. Copy over new client exec program and make changes to the client
-```console
-cp /path/to/proj5/starter-code/cmd/SurfstoreClientExec/main.go cmd/SurfstoreClientExec/
-cp /path/to/proj5/starter-code/cmd/SurfstorePrintBlockMapping/main.go cmd/SurfstorePrintBlockMapping/
-```
-
-The client will need to take a slice of strings instead of a single address. In `pkg/surfstore/SurfstoreRPCClient.go` change the client struct to:
-
-```go
-type RPCClient struct {
-        MetaStoreAddrs []string
-        BaseDir       string
-        BlockSize     int
+-func NewMetaStore(blockStoreAddr string) *MetaStore {
++func NewMetaStore(blockStoreAddrs []string) *MetaStore {
+	return &MetaStore{
+		FileMetaMap:    map[string]*FileMetaData{},
+-		BlockStoreAddr: blockStoreAddr,
++		BlockStoreAddrs:    blockStoreAddrs,
++		ConsistentHashRing: NewConsistentHashRing(blockStoreAddrs),
+	}
 }
 ```
 
-And change the `NewSurfstoreRPCClient` function to:
+5. add the following function in BlockStore.go
+```diff
++// Return a list containing all blockHashes on this block server
++func (bs *BlockStore) GetBlockHashes(ctx context.Context, _ *emptypb.Empty) (*BlockHashes, error) {
++	panic("todo")
++}
+```
 
-```go
-func NewSurfstoreRPCClient(addrs []string, baseDir string, blockSize int) RPCClient {
-        return RPCClient{
-                MetaStoreAddrs: addrs,
-                BaseDir:       baseDir,
-                BlockSize:     blockSize,
-        }
+6. extend SurfstoreRPCClient.go 
+```diff
++func (surfClient *RPCClient) GetBlockHashes(blockStoreAddr string, blockHashes *[]string) error {
++	panic("todo")
++}
+...
+
+-func (surfClient *RPCClient) GetBlockStoreAddr(blockStoreAddr *string) error {
+-	panic("todo")
+-}
++func (surfClient *RPCClient) GetBlockStoreMap(blockHashesIn []string, blockStoreMap *map[string][]string) error {
++	panic("todo")
++}
++
++func (surfClient *RPCClient) GetBlockStoreAddrs(blockStoreAddrs *[]string) error {
++	panic("todo")
++}
+```
+
+7. change your code in `cmd/SurfstoreServerExec/main.go` to handle multiple tail aruguments. In previous project, we only have one tail argument indicating the single block server's address. Now we want to handle multiple arguments to configure multiple block servers. 
+
+
+
+## Protocol buffers
+
+<!-- ```diff
+service BlockStore {
+    rpc GetBlock (BlockHash) returns (Block) {}
+    rpc PutBlock (Block) returns (Success) {}
+    rpc HasBlocks (BlockHashes) returns (BlockHashes) {}
++   rpc GetBlockHashes (google.protobuf.Empty) returns (BlockHashes) {}
 }
-```
 
-MetaStore functionality is now provided by the RaftSurfstoreServer, so change the MetaStore clients to RaftSurfstoreServer clients:
+service MetaStore {
+    rpc GetFileInfoMap(google.protobuf.Empty) returns (FileInfoMap) {}
+    rpc UpdateFile(FileMetaData) returns (Version) {}
+-   rpc GetBlockStoreAddr(google.protobuf.Empty) returns (BlockStoreAddr) {}
++   rpc GetBlockStoreMap(BlockHashes) returns (BlockStoreMap) {}
++   rpc GetBlockStoreAddrs(google.protobuf.Empty) returns (BlockStoreAddrs) {}
+}
+``` -->
 
-```go
-c := NewRaftSurfstoreClient(conn)
-```
+The gRPC service in `SurfStore.proto` haven been changed. **You need to regenerate the gRPC client and server interfaces from our .proto service definition.** We do this using the protocol buffer compiler protoc with a special gRPC Go plugin (The [gRPC official documentation](https://grpc.io/docs/languages/go/basics/) introduces how to install the protocol compiler plugins for Go).
 
-And since we no longer have the `MetaStoreAddr` field, for now you can change `surfclient.MetaStoreAddr` to `surfclient.MetaStoreAddrs[0]`. You will eventually need to change this so you can find a leader, deal with server crashes, etc. 
-```go
-conn, err := grpc.Dial(surfClient.MetaStoreAddrs[0], grpc.WithInsecure())
-```
-
-
-7. Re-generate the protobuf
-```console
+```shell
 protoc --proto_path=. --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative pkg/surfstore/SurfStore.proto
 ```
 
+Running this command generates `SurfStore.pb.go` and `SurfStore_grpc.pb.go` in the `pkg/surfstore` directory.
 
-You should now be able to run `make test` and it will fail with the panic messages.
 
 
-# Makefile
+## Usage
+1. Run your server using this:
+```shell
+go run cmd/SurfstoreServerExec/main.go -s <service> -p <port> -l -d (BlockStoreAddr*)
+```
+Here, `service` should be one of three values: meta, block, or both. This is used to specify the service provided by the server. `port` defines the port number that the server listens to (default=8080). `-l` configures the server to only listen on localhost. `-d` configures the server to output log statements. Lastly, (BlockStoreAddr\*) are the BlockStore addresses that the server is configured with. 
 
-Run BlockStore server:
-```console
-$ make run-blockstore
+2. Run your client using this:
+```shell
+go run cmd/SurfstoreClientExec/main.go -d <meta_addr:port> <base_dir> <block_size>
 ```
 
-Run RaftSurfstore server:
-```console
-$ make IDX=0 run-raft
+3. Print block mapping using this:
+```shell
+go run cmd/SurfstorePrintBlockMapping/main.go -d <meta_addr:port> <base_dir> <block_size>
 ```
 
-Test:
-```console
-$ make test
-```
+## Examples:
 
-Specific Test:
-```console
-$ make TEST_REGEX=Test specific-test
+1.
+```shell
+Run the commands below on separate terminals (or nodes)
+> go run cmd/SurfstoreServerExec/main.go -s block -p 8081 -l
+> go run cmd/SurfstoreServerExec/main.go -s block -p 8082 -l
+> go run cmd/SurfstoreServerExec/main.go -s meta -l localhost:8081 localhost:8082
 ```
+The first two lines start two servers that services BlockStore interface and listens to localhost on port 8081 and 8082. The third line starts a server that services MetaStore interface, listens to localhost on port 8080, and references the BlockStore we created as the underlying BlockStore. (Note: if these are on separate nodes, then you should use the public ip address and remove `-l`)
 
-Clean:
-```console
-$ make clean
+2. From a new terminal (or a new node), run the client using the script provided in the starter code (if using a new node, build using step 1 first). Use a base directory with some files in it.
+```shell
+> mkdir dataA
+> cp ~/pic.jpg dataA/ 
+> go run cmd/SurfstoreClientExec/main.go localhost:8080 dataA 4096
 ```
+This would sync pic.jpg to the server hosted on localhost:8080, using `dataA` as the base directory, with a block size of 4096 bytes.
+
+3. From another terminal (or a new node), run PrintBlockMapping to check which blocks a block server has. 
+```shell
+> go run cmd/SurfstorePrintBlockMapping/main.go localhost:8080 dataB 4096
+```
+The output willl be a map from block hashes to server names. 
+
+## Testing 
+We will conduct similar tests to the previous project, but this time on multiple servers. Make sure your surfstore supports multiple servers, and ClientSync works as expected. In addition, we will check your block mapping by calling SurfstorePrintBlockMapping. 
+
+On gradescope, only a subset of test cases will be visible, so we highly encourage you to come up with different scenarios like the one described above. You can then match the outcome of your implementation to the expected output based on the theory provided in the writeup.

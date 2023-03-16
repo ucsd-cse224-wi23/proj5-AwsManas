@@ -14,8 +14,8 @@ run-raft:
 .PHONY: test
 test:
 	rm -rf ./test/_bin
-	GOBIN=$(PWD)/test/_bin go get github.com/mattn/go-sqlite3
-	GOBIN=$(PWD)/test/_bin go install ./...
+	GOBIN="/Users/manas/Desktop/UCSD - Classes /Winter 23/CSE 224/proj5-AwsManas"/test/_bin go get github.com/mattn/go-sqlite3
+	GOBIN="/Users/manas/Desktop/UCSD - Classes /Winter 23/CSE 224/proj5-AwsManas"/test/_bin go install ./...
 	go test -v ./test/...
 
 .PHONY: specific-test
