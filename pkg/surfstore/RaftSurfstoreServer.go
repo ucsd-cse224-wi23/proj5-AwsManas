@@ -55,7 +55,9 @@ func (s *RaftSurfstore) GetFileInfoMap(ctx context.Context, empty *emptypb.Empty
 			break
 		}
 	}
-	return s.metaStore.GetFileInfoMap(ctx, &emptypb.Empty{})
+	t, err := s.metaStore.GetFileInfoMap(ctx, &emptypb.Empty{})
+	fmt.Println("Executing GetFileInfoMap  got :", t.FileInfoMap)
+	return t, err
 }
 
 func (s *RaftSurfstore) GetBlockStoreMap(ctx context.Context, hashes *BlockHashes) (*BlockStoreMap, error) {
@@ -81,7 +83,9 @@ func (s *RaftSurfstore) GetBlockStoreMap(ctx context.Context, hashes *BlockHashe
 		}
 	}
 
-	return s.metaStore.GetBlockStoreMap(ctx, hashes)
+	t, err := s.metaStore.GetBlockStoreMap(ctx, hashes)
+	fmt.Println("Executing GetBlockStoreMap  got :", t.BlockStoreMap)
+	return t, err
 }
 
 func (s *RaftSurfstore) GetBlockStoreAddrs(ctx context.Context, empty *emptypb.Empty) (*BlockStoreAddrs, error) {
@@ -106,7 +110,9 @@ func (s *RaftSurfstore) GetBlockStoreAddrs(ctx context.Context, empty *emptypb.E
 			break
 		}
 	}
-	return s.metaStore.GetBlockStoreAddrs(ctx, &emptypb.Empty{})
+	t, err := s.metaStore.GetBlockStoreAddrs(ctx, &emptypb.Empty{})
+	fmt.Println("Executing GetBlockStoreAddrs  got :", t.BlockStoreAddrs)
+	return t, err
 }
 
 func (s *RaftSurfstore) UpdateFile(ctx context.Context, filemeta *FileMetaData) (*Version, error) {
@@ -131,7 +137,7 @@ func (s *RaftSurfstore) UpdateFile(ctx context.Context, filemeta *FileMetaData) 
 	fmt.Println("In UpdateFile , updated log is  : serverID : ", s.serverId, s.log)
 	fmt.Println("In UpdateFile , updated log lenght  for serverID : is ", s.serverId, len(s.log))
 	cnt := 1
-	servedServers := make([]int, len(s.config.RaftAddrs)+1)
+	servedServers := make([]int, len(s.config.RaftAddrs))
 	logIndexMinus := make([]int, len(s.config.RaftAddrs))
 	tmp := make(chan *AppendEntryOutput)
 	servedServers[int(s.serverId)] = 1
@@ -150,8 +156,8 @@ func (s *RaftSurfstore) UpdateFile(ctx context.Context, filemeta *FileMetaData) 
 				data := &AppendEntryInput{
 					Entries:      s.log[len(s.log)-logIndexMinus[i]-1 : len(s.log)],
 					Term:         s.term,
-					PrevLogIndex: int64(max(len(s.log)-logIndexMinus[i]-1, 0)),
-					PrevLogTerm:  s.log[max(int(len(s.log))-logIndexMinus[i]-1, 0)].Term,
+					PrevLogIndex: int64(len(s.log) - logIndexMinus[i] - 2),
+					PrevLogTerm:  s.log[max(int(len(s.log))-logIndexMinus[i]-2, 0)].Term,
 					LeaderCommit: s.commitIndex,
 				}
 				resp++
@@ -224,14 +230,27 @@ func (s *RaftSurfstore) AppendEntries(ctx context.Context, input *AppendEntryInp
 
 	//2
 	// if int64(len(s.log)) > input.PrevLogIndex && s.log[input.PrevLogIndex].Term != input.PrevLogTerm {
-	if len(s.log) != 0 && int64(len(s.log))-1 < input.PrevLogIndex {
-		fmt.Println("IAM ", s.serverId, " Returning false in appendEntry due to case 2")
-		var out AppendEntryOutput
-		out.ServerId = s.serverId
-		out.Success = false
-		out.Term = s.term
-		out.MatchedIndex = 0
-		return &out, nil
+	// if len(s.log) != 0 && int64(len(s.log))-1 < input.PrevLogIndex {
+	// 	fmt.Println("IAM ", s.serverId, " Returning false in appendEntry due to case 2")
+	// 	var out AppendEntryOutput
+	// 	out.ServerId = s.serverId
+	// 	out.Success = false
+	// 	out.Term = s.term
+	// 	out.MatchedIndex = 0
+	// 	return &out, nil
+	// }
+
+	//2
+	if input.PrevLogIndex != -1 {
+		if len(s.log) <= int(input.PrevLogIndex) {
+			fmt.Println("IAM ", s.serverId, " Returning false in appendEntry due to my log is smaller than prevLogIndex")
+			var out AppendEntryOutput
+			out.ServerId = s.serverId
+			out.Success = false
+			out.Term = s.term
+			out.MatchedIndex = 0
+			return &out, nil
+		}
 	}
 
 	s.isLeader = false
@@ -240,15 +259,17 @@ func (s *RaftSurfstore) AppendEntries(ctx context.Context, input *AppendEntryInp
 	s.term = input.Term
 
 	//3
-	if len(s.log) > 0 && int64(len(s.log))-1 != input.PrevLogIndex && s.log[input.PrevLogIndex].Term != input.PrevLogTerm {
+	if len(s.log) > 0 && input.PrevLogIndex == -1 {
+		s.log = make([]*UpdateOperation, 0)
+	} else if len(s.log) > 0 && s.log[input.PrevLogIndex].Term != input.PrevLogTerm {
 		s.log = s.log[0:input.PrevLogIndex]
 	}
 
 	//4
 	entries := input.Entries
 	tmp := 0
-	for idx := s.lastApplied + 1; int(idx) < len(s.log); idx++ {
-		if s.log[idx] == entries[tmp] {
+	for idx := max(int(s.lastApplied), 0); int(idx) < len(s.log); idx++ {
+		if tmp < len(entries) && s.log[idx] == entries[tmp] {
 			tmp = tmp + 1
 		}
 	}
@@ -259,6 +280,7 @@ func (s *RaftSurfstore) AppendEntries(ctx context.Context, input *AppendEntryInp
 	}
 
 	// 5
+	runUpdate := false
 	prevCommit := s.commitIndex
 	if input.LeaderCommit > s.commitIndex {
 		min := input.LeaderCommit
@@ -266,18 +288,21 @@ func (s *RaftSurfstore) AppendEntries(ctx context.Context, input *AppendEntryInp
 			min = int64(len(s.log) - 1)
 		}
 		s.commitIndex = min
+		runUpdate = true
 	}
 
-	for ss := prevCommit + 1; ss <= s.commitIndex; ss++ {
+	for ss := int(prevCommit) + 1; ss <= int(s.commitIndex) && runUpdate; ss++ {
+		fmt.Println("Applying updatefile for server ", s.serverId)
 		s.metaStore.UpdateFile(ctx, s.log[ss].FileMetaData)
-		s.lastApplied = ss
+		s.lastApplied = int64(ss)
 	}
 
+	fmt.Println("IAM ", s.serverId, " Before returning sucess here's my values : len(log), commit_idx , term ", len(s.log), s.commitIndex, s.term)
 	var out AppendEntryOutput
 	out.Success = true
 	out.Term = s.term
 	out.ServerId = s.serverId
-	out.MatchedIndex = int64(len(s.log))
+	out.MatchedIndex = int64(len(s.log)) - 1
 	return &out, nil
 }
 
@@ -329,10 +354,11 @@ func (s *RaftSurfstore) SendHeartbeat(ctx context.Context, _ *emptypb.Empty) (*S
 				data := &AppendEntryInput{
 					Entries:      make([]*UpdateOperation, 0),
 					Term:         s.term,
-					PrevLogIndex: 0,
+					PrevLogIndex: -1,
 					PrevLogTerm:  0,
 					LeaderCommit: s.commitIndex,
 				}
+				fmt.Println("Sending This to follower : ", *data, s.log)
 				go append_client(data, s, s.config.RaftAddrs[i], tmp)
 			} else {
 				data := &AppendEntryInput{
@@ -342,7 +368,7 @@ func (s *RaftSurfstore) SendHeartbeat(ctx context.Context, _ *emptypb.Empty) (*S
 					PrevLogTerm:  s.log[(len(s.log) - 1)].Term,
 					LeaderCommit: s.commitIndex,
 				}
-
+				fmt.Println("Sending This to follower : ", *data, s.log)
 				go append_client(data, s, s.config.RaftAddrs[i], tmp)
 			}
 

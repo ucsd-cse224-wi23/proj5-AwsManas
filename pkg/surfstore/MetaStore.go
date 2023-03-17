@@ -19,7 +19,6 @@ func (m *MetaStore) GetFileInfoMap(ctx context.Context, _ *emptypb.Empty) (*File
 }
 
 func (m *MetaStore) UpdateFile(ctx context.Context, fileMetaData *FileMetaData) (*Version, error) {
-
 	for fname, fileMdata := range m.FileMetaMap {
 		if fname == fileMetaData.Filename {
 			// file name match , update if version is correct

@@ -170,7 +170,7 @@ func (surfClient *RPCClient) GetBlockStoreMap(blockHashesIn []string, blockStore
 		block_store_mp, err2 := c.GetBlockStoreMap(ctx, &BlockHashes{Hashes: blockHashesIn})
 
 		if err2 != nil {
-			if strings.Contains(err.Error(), ERR_SERVER_CRASHED.Error()) || strings.Contains(err.Error(), ERR_NOT_LEADER.Error()) {
+			if strings.Contains(err2.Error(), ERR_SERVER_CRASHED.Error()) || strings.Contains(err2.Error(), ERR_NOT_LEADER.Error()) {
 				conn.Close()
 				continue
 			}
@@ -179,7 +179,6 @@ func (surfClient *RPCClient) GetBlockStoreMap(blockHashesIn []string, blockStore
 		}
 
 		if err2 == nil {
-			print("here - no error", block_store_mp.BlockStoreMap)
 			tmp := block_store_mp.BlockStoreMap
 
 			tmp2 := make(map[string][]string)
