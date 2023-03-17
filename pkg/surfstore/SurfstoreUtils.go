@@ -9,14 +9,14 @@ import (
 
 // Implement the logic for a client syncing with the server here.
 func ClientSync(client RPCClient) {
-	//fmt.Println("Client sync started - Scanning the base directory ")
+	fmt.Println("Client sync started - Scanning the base directory ")
 	all_files := scanBaseDir(client.BaseDir)
-	//fmt.Println("All files scanned , got : ", all_files)
+	fmt.Println("All files scanned , got : ", all_files)
 	client_sync_files := make(map[string]FileMetaData)
 	client_sync_files_data := make(map[string][]Block)
 	var block_store_addr []string
 	client.GetBlockStoreAddrs(&block_store_addr)
-	//fmt.Println("Block Store Adress in client : ", block_store_addr)
+	fmt.Println("Block Store Adress in client : ", block_store_addr)
 
 	for _, file := range all_files {
 		if file != "index.db" {
@@ -64,9 +64,9 @@ func ClientSync(client RPCClient) {
 			}
 		}
 	}
-	// fmt.Println("New files in local : ", new_files_in_local)
-	// fmt.Println("Changed files in local : ", changed_files_idx_local)
-	// fmt.Println("Deleted file list : ", deleted_file_list)
+	fmt.Println("New files in local : ", new_files_in_local)
+	fmt.Println("Changed files in local : ", changed_files_idx_local)
+	fmt.Println("Deleted file list : ", deleted_file_list)
 	var remote_index_file_map map[string]*FileMetaData
 	client.GetFileInfoMap(&remote_index_file_map)
 	//PrintMetaMap(remote_index_file_map)
@@ -79,14 +79,14 @@ func ClientSync(client RPCClient) {
 		if ok {
 			// check version, if outdated download the file
 			if val.Version > t.Version {
-				// fmt.Println("Downloading file , updated version present in remote  : ", file_nm)
+				fmt.Println("Downloading file , updated version present in remote  : ", file_nm)
 				downloadFileFromRemote(client.BaseDir, file_nm, block_store_addr, client, val)
 				localFileMetaMap[file_nm] = val
 				deleted_file_list = deleteIfExists(deleted_file_list, file_nm)
 				changed_files_idx_local = deleteIfExists(changed_files_idx_local, file_nm)
 			}
 		} else {
-			// fmt.Println("Downloading file : ", file_nm, " from remote")
+			fmt.Println("Downloading file : ", file_nm, " from remote")
 			downloadFileFromRemote(client.BaseDir, file_nm, block_store_addr, client, val)
 			localFileMetaMap[file_nm] = val
 		}

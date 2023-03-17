@@ -1,62 +1,12 @@
 rm -rf ./test/_bin
 GOBIN="/Users/manas/Desktop/UCSD - Classes /Winter 23/CSE 224/proj5-AwsManas"/test/_bin go get github.com/mattn/go-sqlite3
 GOBIN="/Users/manas/Desktop/UCSD - Classes /Winter 23/CSE 224/proj5-AwsManas"/test/_bin go install ./...
-go test -v -run TestSyncTwoClientsSameFileLeaderFailure -count=1 ./test/...
-=== RUN   TestSyncTwoClientsSameFileLeaderFailure
-    raft_client_test.go:12: client1 syncs with file1. client2 syncs with file1 (different content). client1 syncs again.
+go test -v -run TestRaftFollowersGetUpdates -count=1 ./test/...
+=== RUN   TestRaftFollowersGetUpdates
+    raft_test.go:79: leader1 gets a request
 Sending heartbeat from  0
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 1 -1 0 [] -1} []
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 1 -1 0 [] -1} []
-IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   1 -1 -1 0
-IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  0 -1 1
-IAM 1 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   1 -1 -1 0
-IAM  1  Before returning sucess here's my values : len(log), commit_idx , term  0 -1 1
-Got sucess heartbeat response from  :  2
-Got sucess heartbeat response from  :  1
-Finished sending heartbeat - got  3 responses
-Sending heartbeat from  0
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 1 -1 0 [] -1} []
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 1 -1 0 [] -1} []
-IAM 1 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   1 -1 -1 0
-IAM  1  Before returning sucess here's my values : len(log), commit_idx , term  0 -1 1
-IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   1 -1 -1 0
-IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  0 -1 1
-Got sucess heartbeat response from  :  1
-Got sucess heartbeat response from  :  2
-Finished sending heartbeat - got  3 responses
-2023/03/17 11:05:20 Client syncing with  {[localhost:9007 localhost:9008 localhost:9009] [localhost:8080 localhost:8081]} test0 1024
-GetBlockStoreAddrs in loop 0
-In GetBlockStoreAddrs : serverID :  0 Leader , Crashed :  true false
-Sending heartbeat from  0
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 1 -1 0 [] -1} []
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 1 -1 0 [] -1} []
-IAM 1 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   1 -1 -1 0
-IAM  1  Before returning sucess here's my values : len(log), commit_idx , term  0 -1 1
-IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   1 -1 -1 0
-IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  0 -1 1
-Got sucess heartbeat response from  :  1
-Got sucess heartbeat response from  :  2
-Finished sending heartbeat - got  3 responses
-getBlockStoreAddrs : got suc as  true
-Executing GetBlockStoreAddrs  got : [localhost:8080 localhost:8081]
-In GetFileInfoMap : serverID :  0 Leader , Crashed :  true false
-Sending heartbeat from  0
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 1 -1 0 [] -1} []
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 1 -1 0 [] -1} []
-IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   1 -1 -1 0
-IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  0 -1 1
-IAM 1 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   1 -1 -1 0
-IAM  1  Before returning sucess here's my values : len(log), commit_idx , term  0 -1 1
-Got sucess heartbeat response from  :  2
-Got sucess heartbeat response from  :  1
-Finished sending heartbeat - got  3 responses
-getFileInfoMap : got suc as  true
-Executing GetFileInfoMap  got : map[]
-Total lines :  3
-In GetBlockStoreMap : serverID :  0 Leader , Crashed :  true false
-Sending heartbeat from  0
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 1 -1 0 [] -1} []
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 1 -1 0 [] -1} []
+Sending This to follower :  {{{} [] [] <nil>} 0 [] 1 -1 0 [] -1}
+Sending This to follower :  {{{} [] [] <nil>} 0 [] 1 -1 0 [] -1}
 IAM 1 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   1 -1 -1 0
 IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   1 -1 -1 0
 IAM  1  Before returning sucess here's my values : len(log), commit_idx , term  0 -1 1
@@ -64,212 +14,111 @@ IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  
 Got sucess heartbeat response from  :  2
 Got sucess heartbeat response from  :  1
 Finished sending heartbeat - got  3 responses
-getBlockStoreMap : got suc as  true
-Executing GetBlockStoreMap  got : map[localhost:8081:hashes:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"]
-Get block addr map :  map[localhost:8081:[9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628]]
-Returning this as address :  localhost:8081
+Sending heartbeat from  0
+Sending This to follower :  {{{} [] [] <nil>} 0 [] 1 -1 0 [] -1}
+Sending This to follower :  {{{} [] [] <nil>} 0 [] 1 -1 0 [] -1}
+IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   1 -1 -1 0
+IAM 1 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   1 -1 -1 0
+IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  0 -1 1
+IAM  1  Before returning sucess here's my values : len(log), commit_idx , term  0 -1 1
+Got sucess heartbeat response from  :  1
+Got sucess heartbeat response from  :  2
+Finished sending heartbeat - got  3 responses
 In UpdateFile : serverID :  0 Leader , Crashed :  true false
-In UpdateFile , updated log is  : serverID :  0 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}]
+In UpdateFile , updated log is  : serverID :  0 [term:1  fileMetaData:{filename:"testfile"  version:1}]
 In UpdateFile , updated log lenght  for serverID : is  0 1
 logIndexMinus :  1 0
 logIndexMinus :  2 0
 IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   1 -1 -1 1
-IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  1 -1 1
 IAM 1 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   1 -1 -1 1
+IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  1 -1 1
 IAM  1  Before returning sucess here's my values : len(log), commit_idx , term  1 -1 1
-UpdateFile - Update sucessfull for :  2 in  0
 UpdateFile - Update sucessfull for :  1 in  0
-Got majority , applying operation is local 
-Hereee-----
+UpdateFile - Update sucessfull for :  2 in  0
+Got majority , applying operation is local , here's my state before operation :  [term:1  fileMetaData:{filename:"testfile"  version:1}]
+State after operation :  [term:1  fileMetaData:{filename:"testfile"  version:1}]
 Sending heartbeat from  0
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 1 0 1 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}] 0} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}]
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 1 0 1 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}] 0} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}]
+Sending This to follower :  {{{} [] [] <nil>} 0 [] 1 0 1 [term:1  fileMetaData:{filename:"testfile"  version:1}] 0}
+Sending This to follower :  {{{} [] [] <nil>} 0 [] 1 0 1 [term:1  fileMetaData:{filename:"testfile"  version:1}] 0}
 IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   1 0 0 1
-IAM 1 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   1 0 0 1
 Applying updatefile for server  2
+IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  1 0 1
+Got sucess heartbeat response from  :  2
+IAM 1 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   1 0 0 1
 Applying updatefile for server  1
-IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  2 0 1
+IAM  1  Before returning sucess here's my values : len(log), commit_idx , term  1 0 1
+Got sucess heartbeat response from  :  1
+Finished sending heartbeat - got  3 responses
+In UpdateFile : serverID :  0 Leader , Crashed :  true false
+In UpdateFile , updated log is  : serverID :  0 [term:1  fileMetaData:{filename:"testfile"  version:1} term:1  fileMetaData:{filename:"testfile"  version:2}]
+In UpdateFile , updated log lenght  for serverID : is  0 2
+logIndexMinus :  1 0
+logIndexMinus :  2 0
+IAM 1 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   1 0 0 2
 IAM  1  Before returning sucess here's my values : len(log), commit_idx , term  2 0 1
+IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   1 0 0 2
+IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  2 0 1
+UpdateFile - Update sucessfull for :  1 in  0
+UpdateFile - Update sucessfull for :  2 in  0
+Got majority , applying operation is local , here's my state before operation :  [term:1  fileMetaData:{filename:"testfile"  version:1} term:1  fileMetaData:{filename:"testfile"  version:2}]
+State after operation :  [term:1  fileMetaData:{filename:"testfile"  version:1} term:1  fileMetaData:{filename:"testfile"  version:2}]
+Sending heartbeat from  0
+Sending This to follower :  {{{} [] [] <nil>} 0 [] 1 1 1 [term:1  fileMetaData:{filename:"testfile"  version:1} term:1  fileMetaData:{filename:"testfile"  version:2}] 1}
+Sending This to follower :  {{{} [] [] <nil>} 0 [] 1 1 1 [term:1  fileMetaData:{filename:"testfile"  version:1} term:1  fileMetaData:{filename:"testfile"  version:2}] 1}
+IAM 1 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   1 1 1 2
+Applying updatefile for server  1
+IAM  1  Before returning sucess here's my values : len(log), commit_idx , term  2 1 1
+IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   1 1 1 2
+Applying updatefile for server  2
+IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  2 1 1
+Got sucess heartbeat response from  :  1
+Got sucess heartbeat response from  :  2
+Finished sending heartbeat - got  3 responses
+Sending heartbeat from  0
+Sending This to follower :  {{{} [] [] <nil>} 0 [] 1 1 1 [term:1  fileMetaData:{filename:"testfile"  version:1} term:1  fileMetaData:{filename:"testfile"  version:2}] 1}
+Sending This to follower :  {{{} [] [] <nil>} 0 [] 1 1 1 [term:1  fileMetaData:{filename:"testfile"  version:1} term:1  fileMetaData:{filename:"testfile"  version:2}] 1}
+IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   1 1 1 2
+IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  2 1 1
+IAM 1 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   1 1 1 2
+IAM  1  Before returning sucess here's my values : len(log), commit_idx , term  2 1 1
 Got sucess heartbeat response from  :  2
 Got sucess heartbeat response from  :  1
 Finished sending heartbeat - got  3 responses
 Sending heartbeat from  1
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 1 1 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}] 0} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}]
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 1 1 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}] 0} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}]
-IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 0 1 2
-IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  4 0 2
+Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 1 1 [term:1  fileMetaData:{filename:"testfile"  version:1} term:1  fileMetaData:{filename:"testfile"  version:2}] 1}
+Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 1 1 [term:1  fileMetaData:{filename:"testfile"  version:1} term:1  fileMetaData:{filename:"testfile"  version:2}] 1}
+IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 1 1 2
+IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  2 1 2
 Got sucess heartbeat response from  :  2
-IAM 0 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 0 1 2
-Got a negetive herbeat response from :  -1
-Finished sending heartbeat - got  2 responses
+IAM 0 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 1 1 2
+IAM  0  Before returning sucess here's my values : len(log), commit_idx , term  2 1 2
+Got sucess heartbeat response from  :  0
+Finished sending heartbeat - got  3 responses
 Sending heartbeat from  1
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 1 1 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}] 0} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}]
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 1 1 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}] 0} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}]
-IAM 0 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 0 1 2
-Got a negetive herbeat response from :  -1
-IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 0 1 2
-IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  6 0 2
+Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 1 1 [term:1  fileMetaData:{filename:"testfile"  version:1} term:1  fileMetaData:{filename:"testfile"  version:2}] 1}
+Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 1 1 [term:1  fileMetaData:{filename:"testfile"  version:1} term:1  fileMetaData:{filename:"testfile"  version:2}] 1}
+IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 1 1 2
+IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  2 1 2
+IAM 0 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 1 1 2
+IAM  0  Before returning sucess here's my values : len(log), commit_idx , term  2 1 2
 Got sucess heartbeat response from  :  2
-Finished sending heartbeat - got  2 responses
-2023/03/17 11:05:20 Client syncing with  {[localhost:9007 localhost:9008 localhost:9009] [localhost:8080 localhost:8081]} test1 1024
-GetBlockStoreAddrs in loop 0
-In GetBlockStoreAddrs : serverID :  0 Leader , Crashed :  true true
-GetBlockStoreAddrs in loop 1
-In GetBlockStoreAddrs : serverID :  1 Leader , Crashed :  true false
-Sending heartbeat from  1
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 1 1 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}] 0} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}]
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 1 1 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}] 0} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}]
-IAM 0 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 0 1 2
-IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 0 1 2
-IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  8 0 2
-Got a negetive herbeat response from :  -1
-Got sucess heartbeat response from  :  2
-Finished sending heartbeat - got  2 responses
-getBlockStoreAddrs : got suc as  true
-Executing GetBlockStoreAddrs  got : [localhost:8080 localhost:8081]
-In GetFileInfoMap : serverID :  0 Leader , Crashed :  true true
-In GetFileInfoMap : serverID :  1 Leader , Crashed :  true false
-Sending heartbeat from  1
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 1 1 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}] 0} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}]
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 1 1 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}] 0} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}]
-IAM 0 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 0 1 2
-IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 0 1 2
-IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  10 0 2
-Got sucess heartbeat response from  :  2
-Got a negetive herbeat response from :  -1
-Finished sending heartbeat - got  2 responses
-getFileInfoMap : got suc as  true
-Executing GetFileInfoMap  got : map[multi_file1.txt:filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"]
-Total lines :  3
-In GetBlockStoreMap : serverID :  0 Leader , Crashed :  true true
-In GetBlockStoreMap : serverID :  1 Leader , Crashed :  true false
-Sending heartbeat from  1
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 1 1 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}] 0} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}]
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 1 1 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}] 0} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}]
-IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 0 1 2
-IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  12 0 2
-Got sucess heartbeat response from  :  2
-IAM 0 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 0 1 2
-Got a negetive herbeat response from :  -1
-Finished sending heartbeat - got  2 responses
-getBlockStoreMap : got suc as  true
-Executing GetBlockStoreMap  got : map[localhost:8081:hashes:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"]
-Returning this as address :  localhost:8081
-Total lines :  3
-In GetBlockStoreMap : serverID :  0 Leader , Crashed :  true true
-In GetBlockStoreMap : serverID :  1 Leader , Crashed :  true false
-Sending heartbeat from  1
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 1 1 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}] 0} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}]
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 1 1 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}] 0} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"}]
-IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 0 1 2
-IAM 0 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 0 1 2
-IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  14 0 2
-Got a negetive herbeat response from :  -1
-Got sucess heartbeat response from  :  2
-Finished sending heartbeat - got  2 responses
-getBlockStoreMap : got suc as  true
-Executing GetBlockStoreMap  got : map[localhost:8080:hashes:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"]
-Get block addr map :  map[localhost:8080:[48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a]]
-Returning this as address :  localhost:8080
-In UpdateFile : serverID :  0 Leader , Crashed :  true true
+Got sucess heartbeat response from  :  0
+Finished sending heartbeat - got  3 responses
 In UpdateFile : serverID :  1 Leader , Crashed :  true false
-In UpdateFile , updated log is  : serverID :  1 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}]
+In UpdateFile , updated log is  : serverID :  1 [term:1  fileMetaData:{filename:"testfile"  version:1} term:1  fileMetaData:{filename:"testfile"  version:2} term:2  fileMetaData:{filename:"testfile2"  version:1}]
 In UpdateFile , updated log lenght  for serverID : is  1 3
 logIndexMinus :  0 0
 logIndexMinus :  2 0
-IAM 0 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 0 1 3
-IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 0 1 3
-IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  17 0 2
-Cant contact some server , continue 
+IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 1 1 3
+IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  3 1 2
 UpdateFile - Update sucessfull for :  2 in  1
-Got majority , applying operation is local 
-In GetFileInfoMap : serverID :  0 Leader , Crashed :  true true
-In GetFileInfoMap : serverID :  1 Leader , Crashed :  true false
-Sending heartbeat from  1
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 2 2 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}] 1} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}]
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 2 2 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}] 1} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}]
-IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 1 2 3
-Applying updatefile for server  2
-IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  20 1 2
-IAM 0 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 1 2 3
-Got sucess heartbeat response from  :  2
-Got a negetive herbeat response from :  -1
-Finished sending heartbeat - got  2 responses
-getFileInfoMap : got suc as  true
-Executing GetFileInfoMap  got : map[multi_file1.txt:filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"]
-Total lines :  3
-In GetBlockStoreMap : serverID :  0 Leader , Crashed :  true true
-In GetBlockStoreMap : serverID :  1 Leader , Crashed :  true false
-Sending heartbeat from  1
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 2 2 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}] 1} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}]
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 2 2 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}] 1} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}]
-IAM 0 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 1 2 3
-IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 1 2 3
-IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  23 1 2
-Got sucess heartbeat response from  :  2
-Got a negetive herbeat response from :  -1
-Finished sending heartbeat - got  2 responses
-getBlockStoreMap : got suc as  true
-Executing GetBlockStoreMap  got : map[localhost:8081:hashes:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"]
-Returning this as address :  localhost:8081
-Hereee-----
-Sending heartbeat from  1
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 2 2 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}] 1} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}]
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 2 2 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}] 1} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}]
-IAM 0 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 1 2 3
-Got a negetive herbeat response from :  -1
-IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 1 2 3
-IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  26 1 2
-Got sucess heartbeat response from  :  2
-Finished sending heartbeat - got  2 responses
-2023/03/17 11:05:20 Client syncing with  {[localhost:9007 localhost:9008 localhost:9009] [localhost:8080 localhost:8081]} test0 1024
-GetBlockStoreAddrs in loop 0
-In GetBlockStoreAddrs : serverID :  0 Leader , Crashed :  true true
-GetBlockStoreAddrs in loop 1
-In GetBlockStoreAddrs : serverID :  1 Leader , Crashed :  true false
-Sending heartbeat from  1
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 2 2 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}] 1} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}]
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 2 2 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}] 1} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}]
-IAM 0 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 1 2 3
-IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 1 2 3
-IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  29 1 2
-Got a negetive herbeat response from :  -1
-Got sucess heartbeat response from  :  2
-Finished sending heartbeat - got  2 responses
-getBlockStoreAddrs : got suc as  true
-Executing GetBlockStoreAddrs  got : [localhost:8080 localhost:8081]
-In GetFileInfoMap : serverID :  0 Leader , Crashed :  true true
-In GetFileInfoMap : serverID :  1 Leader , Crashed :  true false
-Sending heartbeat from  1
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 2 2 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}] 1} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}]
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 2 2 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}] 1} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}]
-IAM 0 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 1 2 3
-IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 1 2 3
-IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  32 1 2
-Got a negetive herbeat response from :  -1
-Got sucess heartbeat response from  :  2
-Finished sending heartbeat - got  2 responses
-getFileInfoMap : got suc as  true
-Executing GetFileInfoMap  got : map[multi_file1.txt:filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"]
-Hereee-----
-Sending heartbeat from  1
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 2 2 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}] 1} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}]
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 2 2 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}] 1} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}]
-IAM 0 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 1 2 3
-IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 1 2 3
-IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  35 1 2
-Got a negetive herbeat response from :  -1
-Got sucess heartbeat response from  :  2
-Finished sending heartbeat - got  2 responses
-Sending heartbeat from  1
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 2 2 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}] 1} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}]
-Sending This to follower :  {{{} [] [] <nil>} 0 [] 2 2 2 [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}] 1} [term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:1 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"9193460d4355655100cced0da2455725954377e10edfa83f18d347a10e2e2628"} term:2 fileMetaData:{filename:"multi_file1.txt" version:1 blockHashList:"48c0e8479242c551ed76b8b777099d8e05937b819e6bdf1b29ad765b50ff6a5a"}]
-IAM 2 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 1 2 3
-IAM  2  Before returning sucess here's my values : len(log), commit_idx , term  38 1 2
-Got sucess heartbeat response from  :  2
-IAM 0 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 1 2 3
-Got a negetive herbeat response from :  -1
-Finished sending heartbeat - got  2 responses
---- PASS: TestSyncTwoClientsSameFileLeaderFailure (2.39s)
-PASS
-ok  	cse224/proj5/test	2.714s
+IAM 0 Reacieved a appendEntry call with values : Term , LeaderCommit , PrevLogidx , len of entries :   2 1 1 3
+IAM  0  Before returning sucess here's my values : len(log), commit_idx , term  3 1 2
+UpdateFile - Update sucessfull for :  0 in  1
+Got majority , applying operation is local , here's my state before operation :  [term:1  fileMetaData:{filename:"testfile"  version:1} term:1  fileMetaData:{filename:"testfile"  version:2} term:2  fileMetaData:{filename:"testfile2"  version:1}]
+State after operation :  [term:1  fileMetaData:{filename:"testfile"  version:1} term:1  fileMetaData:{filename:"testfile"  version:2} term:2  fileMetaData:{filename:"testfile2"  version:1}]
+    raft_test.go:163: Error checking state for server 0: incorrect MetaStore state
+--- FAIL: TestRaftFollowersGetUpdates (2.14s)
+FAIL
+FAIL	cse224/proj5/test	2.418s
+FAIL
