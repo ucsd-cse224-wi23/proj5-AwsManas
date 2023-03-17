@@ -16,6 +16,7 @@ func ClientSync(client RPCClient) {
 	client_sync_files_data := make(map[string][]Block)
 	var block_store_addr []string
 	client.GetBlockStoreAddrs(&block_store_addr)
+
 	//fmt.Println("Block Store Adress in client : ", block_store_addr)
 
 	for _, file := range all_files {
@@ -71,7 +72,10 @@ func ClientSync(client RPCClient) {
 	// fmt.Println("Changed files in local : ", changed_files_idx_local)
 	// fmt.Println("Deleted file list : ", deleted_file_list)
 	var remote_index_file_map map[string]*FileMetaData
-	client.GetFileInfoMap(&remote_index_file_map)
+	err2 := client.GetFileInfoMap(&remote_index_file_map)
+	if err2 != nil {
+		log.Fatal(err2)
+	}
 	//fmt.Print("remote")
 	//PrintMetaMap(remote_index_file_map)
 	// Download files present in remote but not in localindex (not base dir)
@@ -133,14 +137,17 @@ func ClientSync(client RPCClient) {
 		var ver Version
 		err := client.UpdateFile(&filemtdata, &ver.Version)
 		if err != nil {
-			log.Panic("Its time to panic")
+			log.Fatal(err)
 		}
 		if ver.Version != -1 {
 			localFileMetaMap[file_nm] = &filemtdata
 		} else {
 			// Failure , download the latest file
 			var new_remote_index_file_map map[string]*FileMetaData
-			client.GetFileInfoMap(&new_remote_index_file_map)
+			err4 := client.GetFileInfoMap(&new_remote_index_file_map)
+			if err4 != nil {
+				log.Fatal(err4)
+			}
 			val := new_remote_index_file_map[file_nm]
 			downloadFileFromRemote(client.BaseDir, file_nm, block_store_addr, client, val)
 			localFileMetaMap[file_nm] = val
@@ -166,7 +173,10 @@ func ClientSync(client RPCClient) {
 		} else {
 			// Failure , download the latest file
 			var new_remote_index_file_map map[string]*FileMetaData
-			client.GetFileInfoMap(&new_remote_index_file_map)
+			err5 := client.GetFileInfoMap(&new_remote_index_file_map)
+			if err5 != nil {
+				log.Fatal(err5)
+			}
 			val := new_remote_index_file_map[file_]
 			downloadFileFromRemote(client.BaseDir, file_, block_store_addr, client, val)
 			localFileMetaMap[file_] = val
