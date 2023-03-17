@@ -9,9 +9,9 @@ import (
 
 // Implement the logic for a client syncing with the server here.
 func ClientSync(client RPCClient) {
-	fmt.Println("Client sync started - Scanning the base directory ")
+	//fmt.Println("Client sync started - Scanning the base directory ")
 	all_files := scanBaseDir(client.BaseDir)
-	fmt.Println("All files scanned , got : ", all_files)
+	//fmt.Println("All files scanned , got : ", all_files)
 	client_sync_files := make(map[string]FileMetaData)
 	client_sync_files_data := make(map[string][]Block)
 	var block_store_addr []string
@@ -37,8 +37,8 @@ func ClientSync(client RPCClient) {
 		fmt.Println("Error loading metafile in local client")
 	}
 
-	fmt.Print("local")
-	PrintMetaMap(localFileMetaMap)
+	//fmt.Print("local")
+	//PrintMetaMap(localFileMetaMap)
 
 	var new_files_in_local []string
 	var changed_files_idx_local []string
@@ -67,13 +67,13 @@ func ClientSync(client RPCClient) {
 			}
 		}
 	}
-	fmt.Println("New files in local : ", new_files_in_local)
-	fmt.Println("Changed files in local : ", changed_files_idx_local)
-	fmt.Println("Deleted file list : ", deleted_file_list)
+	// fmt.Println("New files in local : ", new_files_in_local)
+	// fmt.Println("Changed files in local : ", changed_files_idx_local)
+	// fmt.Println("Deleted file list : ", deleted_file_list)
 	var remote_index_file_map map[string]*FileMetaData
 	client.GetFileInfoMap(&remote_index_file_map)
-	fmt.Print("remote")
-	PrintMetaMap(remote_index_file_map)
+	//fmt.Print("remote")
+	//PrintMetaMap(remote_index_file_map)
 	// Download files present in remote but not in localindex (not base dir)
 	//+ // Download all the files whose version is more that what was in local_index
 
@@ -97,16 +97,16 @@ func ClientSync(client RPCClient) {
 		}
 	}
 
-	fmt.Print("local")
-	PrintMetaMap(localFileMetaMap)
+	// fmt.Print("local")
+	// PrintMetaMap(localFileMetaMap)
 	// Upload file that are not in localindex and remoteIndex
 
 	var all_files_best_local []string
 	all_files_best_local = append(all_files_best_local, new_files_in_local...)
 	all_files_best_local = append(all_files_best_local, changed_files_idx_local...)
-	fmt.Println("All best files : ", all_files_best_local)
-	fmt.Println("New files in local : ", new_files_in_local)
-	fmt.Println("Changed files in local :", changed_files_idx_local)
+	// fmt.Println("All best files : ", all_files_best_local)
+	// fmt.Println("New files in local : ", new_files_in_local)
+	// fmt.Println("Changed files in local :", changed_files_idx_local)
 	for _, file_nm := range all_files_best_local {
 		var block_addr_map map[string][]string
 		client.GetBlockStoreMap(client_sync_files[file_nm].BlockHashList, &block_addr_map)
@@ -146,7 +146,7 @@ func ClientSync(client RPCClient) {
 	}
 
 	// Sync all the deleted file
-	fmt.Println("Deleted file list : ", deleted_file_list)
+	// fmt.Println("Deleted file list : ", deleted_file_list)
 	for _, file_ := range deleted_file_list {
 		// Update the server with File Info
 		var filemtdata FileMetaData
