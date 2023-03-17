@@ -131,7 +131,10 @@ func ClientSync(client RPCClient) {
 		}
 		filemtdata.BlockHashList = client_sync_files[file_nm].BlockHashList
 		var ver Version
-		client.UpdateFile(&filemtdata, &ver.Version)
+		err := client.UpdateFile(&filemtdata, &ver.Version)
+		if err != nil {
+			log.Panic("Its time to panic")
+		}
 		if ver.Version != -1 {
 			localFileMetaMap[file_nm] = &filemtdata
 		} else {
@@ -154,7 +157,10 @@ func ClientSync(client RPCClient) {
 		filemtdata.Version = localFileMetaMap[file_].Version + 1
 		filemtdata.BlockHashList = []string{"0"}
 		var ver Version
-		client.UpdateFile(&filemtdata, &ver.Version)
+		err := client.UpdateFile(&filemtdata, &ver.Version)
+		if err != nil {
+			log.Panic("Its time to panic")
+		}
 		if ver.Version != -1 {
 			localFileMetaMap[file_] = &filemtdata
 		} else {
