@@ -19,7 +19,6 @@ func (m *MetaStore) GetFileInfoMap(ctx context.Context, _ *emptypb.Empty) (*File
 }
 
 func (m *MetaStore) UpdateFile(ctx context.Context, fileMetaData *FileMetaData) (*Version, error) {
-
 	for fname, fileMdata := range m.FileMetaMap {
 		if fname == fileMetaData.Filename {
 			// file name match , update if version is correct
@@ -54,7 +53,6 @@ func (m *MetaStore) GetBlockStoreMap(ctx context.Context, blockHashesIn *BlockHa
 	for k, v := range temp_map {
 		bsm.BlockStoreMap[k] = &BlockHashes{Hashes: v}
 	}
-	fmt.Println("BSM : ", bsm)
 	return &bsm, nil
 }
 func (m *MetaStore) GetBlockStoreAddrs(ctx context.Context, _ *emptypb.Empty) (*BlockStoreAddrs, error) {

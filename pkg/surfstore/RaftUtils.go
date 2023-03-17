@@ -52,8 +52,8 @@ func NewRaftServer(id int64, config RaftConfig) (*RaftSurfstore, error) {
 		isCrashedMutex: &isCrashedMutex,
 		serverId:       id,
 		votedFor:       -1,
-		commitIndex:    0,
-		lastApplied:    0,
+		commitIndex:    -1,
+		lastApplied:    -1,
 		config:         config,
 	}
 

@@ -3,6 +3,7 @@ package surfstore
 import (
 	context "context"
 	"fmt"
+	"strings"
 	"time"
 
 	grpc "google.golang.org/grpc"
@@ -98,16 +99,21 @@ func (surfClient *RPCClient) GetFileInfoMap(serverFileInfoMap *map[string]*FileM
 		defer cancel()
 		fileInfoMap, err := c.GetFileInfoMap(ctx, &emptypb.Empty{})
 
-		if err != nil && err != ERR_NOT_LEADER && err != ERR_SERVER_CRASHED {
+		if err != nil {
+			if strings.Contains(err.Error(), ERR_SERVER_CRASHED.Error()) || strings.Contains(err.Error(), ERR_NOT_LEADER.Error()) {
+				conn.Close()
+				continue
+			}
 			conn.Close()
 			return err
 		}
 
 		if err == nil {
 			*serverFileInfoMap = fileInfoMap.FileInfoMap
+			conn.Close()
+			return nil
 		}
 
-		conn.Close()
 	}
 	return nil
 }
@@ -129,15 +135,20 @@ func (surfClient *RPCClient) UpdateFile(fileMetaData *FileMetaData, latestVersio
 
 		verr, err := c.UpdateFile(ctx, fileMetaData)
 
-		if err != nil && err != ERR_NOT_LEADER && err != ERR_SERVER_CRASHED {
+		if err != nil {
+			if strings.Contains(err.Error(), ERR_SERVER_CRASHED.Error()) || strings.Contains(err.Error(), ERR_NOT_LEADER.Error()) {
+				conn.Close()
+				continue
+			}
 			conn.Close()
 			return err
 		}
 		if err == nil {
 			*latestVersion = verr.Version
+			conn.Close()
+			return nil
 		}
 
-		conn.Close()
 	}
 	return nil
 }
@@ -148,23 +159,26 @@ func (surfClient *RPCClient) GetBlockStoreMap(blockHashesIn []string, blockStore
 		conn, err := grpc.Dial(surfClient.MetaStoreAddrs[i], grpc.WithInsecure())
 
 		if err != nil {
+			fmt.Println("Here - ", err.Error())
 			return err
 		}
 
 		c := NewRaftSurfstoreClient(conn)
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+		block_store_mp, err2 := c.GetBlockStoreMap(ctx, &BlockHashes{Hashes: blockHashesIn})
 
-		block_store_mp, err := c.GetBlockStoreMap(ctx, &BlockHashes{Hashes: blockHashesIn})
-
-		if err != nil && err != ERR_NOT_LEADER && err != ERR_SERVER_CRASHED {
-			fmt.Println(err.Error())
+		if err2 != nil {
+			if strings.Contains(err2.Error(), ERR_SERVER_CRASHED.Error()) || strings.Contains(err2.Error(), ERR_NOT_LEADER.Error()) {
+				conn.Close()
+				continue
+			}
 			conn.Close()
 			continue
 		}
 
-		if err == nil {
-			print("here - no error", block_store_mp.BlockStoreMap)
+		if err2 == nil {
 			tmp := block_store_mp.BlockStoreMap
 
 			tmp2 := make(map[string][]string)
@@ -174,16 +188,16 @@ func (surfClient *RPCClient) GetBlockStoreMap(blockHashesIn []string, blockStore
 			}
 
 			*blockStoreMap = tmp2
+			conn.Close()
+			return nil
 		}
-
-		conn.Close()
-		cancel()
 	}
 	return nil
 }
 
 func (surfClient *RPCClient) GetBlockStoreAddrs(blockStoreAddrs *[]string) error {
 	for i := range surfClient.MetaStoreAddrs {
+		fmt.Println("GetBlockStoreAddrs in loop", i)
 		conn, err := grpc.Dial(surfClient.MetaStoreAddrs[i], grpc.WithInsecure())
 
 		if err != nil {
@@ -198,16 +212,20 @@ func (surfClient *RPCClient) GetBlockStoreAddrs(blockStoreAddrs *[]string) error
 
 		block_store_addrs, err := c.GetBlockStoreAddrs(ctx, &emptypb.Empty{})
 
-		if err != nil && err != ERR_NOT_LEADER && err != ERR_SERVER_CRASHED {
+		if err != nil {
+			if strings.Contains(err.Error(), ERR_SERVER_CRASHED.Error()) || strings.Contains(err.Error(), ERR_NOT_LEADER.Error()) {
+				conn.Close()
+				continue
+			}
 			conn.Close()
 			return err
 		}
 
 		if err == nil {
 			*blockStoreAddrs = block_store_addrs.BlockStoreAddrs
+			conn.Close()
+			return nil
 		}
-
-		conn.Close()
 	}
 	return nil
 }

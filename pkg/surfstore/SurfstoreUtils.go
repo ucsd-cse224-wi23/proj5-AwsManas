@@ -158,6 +158,8 @@ func ClientSync(client RPCClient) {
 	}
 
 	WriteMetaFile(localFileMetaMap, client.BaseDir)
+
+	fmt.Println("Hereee-----")
 }
 
 func downloadFileFromRemote(dir_nm string, file_nm string, block_store_addrs []string, client RPCClient, val *FileMetaData) {
