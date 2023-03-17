@@ -154,7 +154,7 @@ func (s *RaftSurfstore) UpdateFile(ctx context.Context, filemeta *FileMetaData) 
 
 				fmt.Println("logIndexMinus : ", i, logIndexMinus[i])
 				data := &AppendEntryInput{
-					Entries:      s.log[len(s.log)-logIndexMinus[i]-1 : len(s.log)],
+					Entries:      s.log[0:len(s.log)],
 					Term:         s.term,
 					PrevLogIndex: int64(len(s.log) - logIndexMinus[i] - 2),
 					PrevLogTerm:  s.log[max(int(len(s.log))-logIndexMinus[i]-2, 0)].Term,
@@ -241,29 +241,29 @@ func (s *RaftSurfstore) AppendEntries(ctx context.Context, input *AppendEntryInp
 	// }
 
 	//2
-	if input.PrevLogIndex != -1 {
-		if len(s.log) <= int(input.PrevLogIndex) {
-			fmt.Println("IAM ", s.serverId, " Returning false in appendEntry due to my log is smaller than prevLogIndex")
-			var out AppendEntryOutput
-			out.ServerId = s.serverId
-			out.Success = false
-			out.Term = s.term
-			out.MatchedIndex = 0
-			return &out, nil
-		}
-	}
+	// if input.PrevLogIndex != -1 {
+	// 	if len(s.log) <= int(input.PrevLogIndex) {
+	// 		fmt.Println("IAM ", s.serverId, " Returning false in appendEntry due to my log is smaller than prevLogIndex")
+	// 		var out AppendEntryOutput
+	// 		out.ServerId = s.serverId
+	// 		out.Success = false
+	// 		out.Term = s.term
+	// 		out.MatchedIndex = 0
+	// 		return &out, nil
+	// 	}
+	// }
 
 	s.isLeader = false
 	s.isCrashedMutex.RUnlock()
 	s.isLeaderMutex.Unlock()
 	s.term = input.Term
 
-	//3
-	if len(s.log) > 0 && input.PrevLogIndex == -1 {
-		s.log = make([]*UpdateOperation, 0)
-	} else if len(s.log) > 0 && s.log[input.PrevLogIndex].Term != input.PrevLogTerm {
-		s.log = s.log[0:input.PrevLogIndex]
-	}
+	// //3
+	// if len(s.log) > 0 && input.PrevLogIndex == -1 {
+	// 	s.log = make([]*UpdateOperation, 0)
+	// } else if len(s.log) > 0 && s.log[input.PrevLogIndex].Term != input.PrevLogTerm {
+	// 	s.log = s.log[0:input.PrevLogIndex]
+	// }
 
 	//4
 	entries := input.Entries
@@ -362,7 +362,7 @@ func (s *RaftSurfstore) SendHeartbeat(ctx context.Context, _ *emptypb.Empty) (*S
 				go append_client(data, s, s.config.RaftAddrs[i], tmp)
 			} else {
 				data := &AppendEntryInput{
-					Entries:      make([]*UpdateOperation, 0),
+					Entries:      s.log[0:len(s.log)],
 					Term:         s.term,
 					PrevLogIndex: int64(len(s.log) - 1),
 					PrevLogTerm:  s.log[(len(s.log) - 1)].Term,
