@@ -158,17 +158,30 @@ func (s *RaftSurfstore) UpdateFile(ctx context.Context, filemeta *FileMetaData) 
 			if i == int(s.serverId) || servedServers[i] == 1 {
 				continue
 			} else {
-
-				fmt.Println("logIndexMinus : ", i, logIndexMinus[i])
-				data := &AppendEntryInput{
-					Entries:      s.log[len(s.log)-logIndexMinus[i]-1 : len(s.log)],
-					Term:         s.term,
-					PrevLogIndex: int64(len(s.log) - logIndexMinus[i] - 2),
-					PrevLogTerm:  s.log[max(int(len(s.log))-logIndexMinus[i]-2, 0)].Term,
-					LeaderCommit: s.commitIndex,
+				if s.commitIndex == -1 {
+					fmt.Println("logIndexMinus : ", i, logIndexMinus[i])
+					data := &AppendEntryInput{
+						Entries:      s.log,
+						Term:         s.term,
+						PrevLogIndex: -1,
+						PrevLogTerm:  0,
+						LeaderCommit: s.commitIndex,
+					}
+					resp++
+					go append_client(data, s, s.config.RaftAddrs[i], tmp)
+				} else {
+					fmt.Println("logIndexMinus : ", i, logIndexMinus[i])
+					data := &AppendEntryInput{
+						Entries:      s.log,
+						Term:         s.term,
+						PrevLogIndex: s.commitIndex,
+						PrevLogTerm:  s.log[s.commitIndex].Term,
+						LeaderCommit: s.commitIndex,
+					}
+					resp++
+					go append_client(data, s, s.config.RaftAddrs[i], tmp)
 				}
-				resp++
-				go append_client(data, s, s.config.RaftAddrs[i], tmp)
+
 			}
 		}
 
@@ -248,17 +261,17 @@ func (s *RaftSurfstore) AppendEntries(ctx context.Context, input *AppendEntryInp
 	// }
 
 	//2
-	if input.PrevLogIndex != -1 {
-		if len(s.log) <= int(input.PrevLogIndex) {
-			fmt.Println("IAM ", s.serverId, " Returning false in appendEntry due to my log is smaller than prevLogIndex")
-			var out AppendEntryOutput
-			out.ServerId = s.serverId
-			out.Success = false
-			out.Term = s.term
-			out.MatchedIndex = 0
-			return &out, nil
-		}
-	}
+	// if input.PrevLogIndex != -1 {
+	// 	if len(s.log) <= int(input.PrevLogIndex) {
+	// 		fmt.Println("IAM ", s.serverId, " Returning false in appendEntry due to my log is smaller than prevLogIndex")
+	// 		var out AppendEntryOutput
+	// 		out.ServerId = s.serverId
+	// 		out.Success = false
+	// 		out.Term = s.term
+	// 		out.MatchedIndex = 0
+	// 		return &out, nil
+	// 	}
+	// }
 
 	s.isLeader = false
 	s.isCrashedMutex.RUnlock()
@@ -266,25 +279,21 @@ func (s *RaftSurfstore) AppendEntries(ctx context.Context, input *AppendEntryInp
 	s.term = input.Term
 
 	//3
-	if len(s.log) > 0 && input.PrevLogIndex == -1 {
-		s.log = make([]*UpdateOperation, 0)
-	} else if len(s.log) > 0 && s.log[input.PrevLogIndex].Term != input.PrevLogTerm {
-		s.log = s.log[0:input.PrevLogIndex]
-	}
+	// if len(s.log) > 0 && input.PrevLogIndex == -1 {
+	// 	s.log = make([]*UpdateOperation, 0)
+	// } else if len(s.log) > 0 && s.log[input.PrevLogIndex].Term != input.PrevLogTerm {
+	// 	s.log = s.log[0:input.PrevLogIndex]
+	// }
 
 	//4
-	entries := input.Entries
-	tmp := 0
-	for idx := max(int(s.lastApplied), 0); int(idx) < len(s.log); idx++ {
-		if tmp < len(entries) && s.log[idx] == entries[tmp] {
-			tmp = tmp + 1
-		}
-	}
 
-	for tmp < len(entries) {
-		s.log = append(s.log, entries[tmp])
-		tmp = tmp + 1
-	}
+	// for idx := max(int(s.lastApplied), 0); int(idx) < len(s.log); idx++ {
+	// 	if tmp < len(entries) && s.log[idx] == entries[tmp] {
+	// 		tmp = tmp + 1
+	// 	}
+	// }
+
+	s.log = input.Entries
 
 	// 5
 	runUpdate := false
@@ -357,25 +366,25 @@ func (s *RaftSurfstore) SendHeartbeat(ctx context.Context, _ *emptypb.Empty) (*S
 		if i == int(s.serverId) {
 			continue
 		} else {
-			if len(s.log) == 0 {
+			if s.commitIndex == -1 {
 				data := &AppendEntryInput{
-					Entries:      make([]*UpdateOperation, 0),
+					Entries:      s.log,
 					Term:         s.term,
 					PrevLogIndex: -1,
 					PrevLogTerm:  0,
 					LeaderCommit: s.commitIndex,
 				}
-				fmt.Println("Sending This to follower : ", *data, s.log)
+				fmt.Println("Sending This to follower : ", *data)
 				go append_client(data, s, s.config.RaftAddrs[i], tmp)
 			} else {
 				data := &AppendEntryInput{
-					Entries:      make([]*UpdateOperation, 0),
+					Entries:      s.log,
 					Term:         s.term,
-					PrevLogIndex: int64(len(s.log) - 1),
-					PrevLogTerm:  s.log[(len(s.log) - 1)].Term,
+					PrevLogIndex: s.commitIndex,
+					PrevLogTerm:  s.log[s.commitIndex].Term,
 					LeaderCommit: s.commitIndex,
 				}
-				fmt.Println("Sending This to follower : ", *data, s.log)
+				fmt.Println("Sending This to follower : ", *data)
 				go append_client(data, s, s.config.RaftAddrs[i], tmp)
 			}
 
