@@ -143,6 +143,13 @@ func (s *RaftSurfstore) UpdateFile(ctx context.Context, filemeta *FileMetaData) 
 	servedServers[int(s.serverId)] = 1
 
 	for cnt <= len(s.config.RaftAddrs)/2 {
+
+		s.isCrashedMutex.RLock()
+		if s.isCrashed {
+			return nil, ERR_SERVER_CRASHED
+		}
+		s.isCrashedMutex.RUnlock()
+
 		resp := 0
 		for i := range s.config.RaftAddrs {
 			if servedServers[i] == 2 {
