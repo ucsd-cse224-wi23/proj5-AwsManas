@@ -142,79 +142,85 @@ func (s *RaftSurfstore) UpdateFile(ctx context.Context, filemeta *FileMetaData) 
 	tmp := make(chan *AppendEntryOutput)
 	servedServers[int(s.serverId)] = 1
 
+	cnntt := 0
 	//for cnt <= len(s.config.RaftAddrs)/2 {
 
-	s.isCrashedMutex.RLock()
-	if s.isCrashed {
-		return nil, ERR_SERVER_CRASHED
-	}
-	s.isCrashedMutex.RUnlock()
-
-	resp := 0
-	for i := range s.config.RaftAddrs {
-		if servedServers[i] == 2 {
-			logIndexMinus[i] += 1
+	for cnntt < 5 {
+		cnntt += 1
+		s.isCrashedMutex.RLock()
+		if s.isCrashed {
+			s.log = s.log[0 : len(s.log)-1]
+			return nil, ERR_SERVER_CRASHED
 		}
-		if i == int(s.serverId) || servedServers[i] == 1 {
-			continue
-		} else {
-			if s.commitIndex == -1 {
-				fmt.Println("logIndexMinus : ", i, logIndexMinus[i])
-				data := &AppendEntryInput{
-					Entries:      s.log,
-					Term:         s.term,
-					PrevLogIndex: -1,
-					PrevLogTerm:  0,
-					LeaderCommit: s.commitIndex,
-				}
-				resp++
-				go append_client(data, s, s.config.RaftAddrs[i], tmp)
-			} else {
-				fmt.Println("logIndexMinus : ", i, logIndexMinus[i])
-				data := &AppendEntryInput{
-					Entries:      s.log,
-					Term:         s.term,
-					PrevLogIndex: s.commitIndex,
-					PrevLogTerm:  s.log[s.commitIndex].Term,
-					LeaderCommit: s.commitIndex,
-				}
-				resp++
-				go append_client(data, s, s.config.RaftAddrs[i], tmp)
+		s.isCrashedMutex.RUnlock()
+
+		resp := 0
+		for i := range s.config.RaftAddrs {
+			if servedServers[i] == 2 {
+				logIndexMinus[i] += 1
 			}
-
-		}
-	}
-
-	for i := 0; i < resp; i++ {
-		ret := <-tmp
-		if ret.Success {
-			fmt.Println("UpdateFile - Update sucessfull for : ", ret.ServerId, "in ", s.serverId)
-			servedServers[ret.ServerId] = 1
-			cnt += 1
-		} else {
-			if ret.ServerId == -1 {
-				fmt.Println("Cant contact some server , continue ")
+			if i == int(s.serverId) || servedServers[i] == 1 {
 				continue
-			}
-			if ret.Term > s.term {
-				s.isLeaderMutex.Lock()
-				s.isLeader = false
-				s.isLeaderMutex.Unlock()
-				return nil, ERR_NOT_LEADER
 			} else {
-				servedServers[ret.ServerId] = 2
+				if s.commitIndex == -1 {
+					fmt.Println("logIndexMinus : ", i, logIndexMinus[i])
+					data := &AppendEntryInput{
+						Entries:      s.log,
+						Term:         s.term,
+						PrevLogIndex: -1,
+						PrevLogTerm:  0,
+						LeaderCommit: s.commitIndex,
+					}
+					resp++
+					go append_client(data, s, s.config.RaftAddrs[i], tmp)
+				} else {
+					fmt.Println("logIndexMinus : ", i, logIndexMinus[i])
+					data := &AppendEntryInput{
+						Entries:      s.log,
+						Term:         s.term,
+						PrevLogIndex: s.commitIndex,
+						PrevLogTerm:  s.log[s.commitIndex].Term,
+						LeaderCommit: s.commitIndex,
+					}
+					resp++
+					go append_client(data, s, s.config.RaftAddrs[i], tmp)
+				}
+
+			}
+		}
+
+		for i := 0; i < resp; i++ {
+			ret := <-tmp
+			if ret.Success {
+				fmt.Println("UpdateFile - Update sucessfull for : ", ret.ServerId, "in ", s.serverId)
+				servedServers[ret.ServerId] = 1
+				cnt += 1
+			} else {
+				if ret.ServerId == -1 {
+					fmt.Println("Cant contact some server , continue ")
+					continue
+				}
+				if ret.Term > s.term {
+					s.isLeaderMutex.Lock()
+					s.isLeader = false
+					s.isLeaderMutex.Unlock()
+					return nil, ERR_NOT_LEADER
+				} else {
+					servedServers[ret.ServerId] = 2
+				}
 			}
 		}
 	}
-	//}
-	if cnt >= len(s.config.RaftAddrs)/2 {
+
+	if cnt > len(s.config.RaftAddrs)/2 {
 		s.commitIndex += 1
 		s.lastApplied += 1
 		fmt.Println("Got majority , applying operation is local ")
 		res, err := s.metaStore.UpdateFile(ctx, filemeta)
 		return res, err
 	} else {
-		return nil, ERR_SERVER_CRASHED
+		s.log = s.log[0 : len(s.log)-1]
+		return nil, ERR_NOT_LEADER
 	}
 
 }
