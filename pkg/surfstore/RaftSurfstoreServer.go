@@ -142,77 +142,80 @@ func (s *RaftSurfstore) UpdateFile(ctx context.Context, filemeta *FileMetaData) 
 	tmp := make(chan *AppendEntryOutput)
 	servedServers[int(s.serverId)] = 1
 
-	for cnt <= len(s.config.RaftAddrs)/2 {
+	//for cnt <= len(s.config.RaftAddrs)/2 {
 
-		s.isCrashedMutex.RLock()
-		if s.isCrashed {
-			return nil, ERR_SERVER_CRASHED
+	s.isCrashedMutex.RLock()
+	if s.isCrashed {
+		return nil, ERR_SERVER_CRASHED
+	}
+	s.isCrashedMutex.RUnlock()
+
+	resp := 0
+	for i := range s.config.RaftAddrs {
+		if servedServers[i] == 2 {
+			logIndexMinus[i] += 1
 		}
-		s.isCrashedMutex.RUnlock()
-
-		resp := 0
-		for i := range s.config.RaftAddrs {
-			if servedServers[i] == 2 {
-				logIndexMinus[i] += 1
-			}
-			if i == int(s.serverId) || servedServers[i] == 1 {
-				continue
+		if i == int(s.serverId) || servedServers[i] == 1 {
+			continue
+		} else {
+			if s.commitIndex == -1 {
+				fmt.Println("logIndexMinus : ", i, logIndexMinus[i])
+				data := &AppendEntryInput{
+					Entries:      s.log,
+					Term:         s.term,
+					PrevLogIndex: -1,
+					PrevLogTerm:  0,
+					LeaderCommit: s.commitIndex,
+				}
+				resp++
+				go append_client(data, s, s.config.RaftAddrs[i], tmp)
 			} else {
-				if s.commitIndex == -1 {
-					fmt.Println("logIndexMinus : ", i, logIndexMinus[i])
-					data := &AppendEntryInput{
-						Entries:      s.log,
-						Term:         s.term,
-						PrevLogIndex: -1,
-						PrevLogTerm:  0,
-						LeaderCommit: s.commitIndex,
-					}
-					resp++
-					go append_client(data, s, s.config.RaftAddrs[i], tmp)
-				} else {
-					fmt.Println("logIndexMinus : ", i, logIndexMinus[i])
-					data := &AppendEntryInput{
-						Entries:      s.log,
-						Term:         s.term,
-						PrevLogIndex: s.commitIndex,
-						PrevLogTerm:  s.log[s.commitIndex].Term,
-						LeaderCommit: s.commitIndex,
-					}
-					resp++
-					go append_client(data, s, s.config.RaftAddrs[i], tmp)
+				fmt.Println("logIndexMinus : ", i, logIndexMinus[i])
+				data := &AppendEntryInput{
+					Entries:      s.log,
+					Term:         s.term,
+					PrevLogIndex: s.commitIndex,
+					PrevLogTerm:  s.log[s.commitIndex].Term,
+					LeaderCommit: s.commitIndex,
 				}
-
+				resp++
+				go append_client(data, s, s.config.RaftAddrs[i], tmp)
 			}
-		}
 
-		for i := 0; i < resp; i++ {
-			ret := <-tmp
-			if ret.Success {
-				fmt.Println("UpdateFile - Update sucessfull for : ", ret.ServerId, "in ", s.serverId)
-				servedServers[ret.ServerId] = 1
-				cnt += 1
-			} else {
-				if ret.ServerId == -1 {
-					fmt.Println("Cant contact some server , continue ")
-					continue
-				}
-				if ret.Term > s.term {
-					s.isLeaderMutex.Lock()
-					s.isLeader = false
-					s.isLeaderMutex.Unlock()
-					return nil, ERR_NOT_LEADER
-				} else {
-					servedServers[ret.ServerId] = 2
-				}
-			}
 		}
 	}
 
-	s.commitIndex += 1
-	s.lastApplied += 1
-	fmt.Println("Got majority , applying operation is local ")
-	res, err := s.metaStore.UpdateFile(ctx, filemeta)
-	return res, err
+	for i := 0; i < resp; i++ {
+		ret := <-tmp
+		if ret.Success {
+			fmt.Println("UpdateFile - Update sucessfull for : ", ret.ServerId, "in ", s.serverId)
+			servedServers[ret.ServerId] = 1
+			cnt += 1
+		} else {
+			if ret.ServerId == -1 {
+				fmt.Println("Cant contact some server , continue ")
+				continue
+			}
+			if ret.Term > s.term {
+				s.isLeaderMutex.Lock()
+				s.isLeader = false
+				s.isLeaderMutex.Unlock()
+				return nil, ERR_NOT_LEADER
+			} else {
+				servedServers[ret.ServerId] = 2
+			}
+		}
+	}
+	//}
+	if cnt >= len(s.config.RaftAddrs)/2 {
+		s.commitIndex += 1
+		s.lastApplied += 1
+		fmt.Println("Got majority , applying operation is local ")
+		res, err := s.metaStore.UpdateFile(ctx, filemeta)
+		return res, err
+	} else {
+		return nil, ERR_SERVER_CRASHED
+	}
 
 }
 
@@ -360,7 +363,6 @@ func (s *RaftSurfstore) SendHeartbeat(ctx context.Context, _ *emptypb.Empty) (*S
 	}
 	fmt.Println("Sending heartbeat from ", s.serverId)
 
-	time.Sleep(50 * time.Millisecond)
 	tmp := make(chan *AppendEntryOutput)
 	for i := range s.config.RaftAddrs {
 		if i == int(s.serverId) {
