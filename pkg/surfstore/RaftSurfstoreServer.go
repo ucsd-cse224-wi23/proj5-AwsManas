@@ -142,14 +142,10 @@ func (s *RaftSurfstore) UpdateFile(ctx context.Context, filemeta *FileMetaData) 
 	tmp := make(chan *AppendEntryOutput)
 	servedServers[int(s.serverId)] = 1
 
-	cnntt := 0
-	//for cnt <= len(s.config.RaftAddrs)/2 {
+	for cnt <= len(s.config.RaftAddrs)/2 {
 
-	for cnntt < 5 {
-		cnntt += 1
 		s.isCrashedMutex.RLock()
 		if s.isCrashed {
-			s.log = s.log[0 : len(s.log)-1]
 			return nil, ERR_SERVER_CRASHED
 		}
 		s.isCrashedMutex.RUnlock()
@@ -212,16 +208,11 @@ func (s *RaftSurfstore) UpdateFile(ctx context.Context, filemeta *FileMetaData) 
 		}
 	}
 
-	if cnt > len(s.config.RaftAddrs)/2 {
-		s.commitIndex += 1
-		s.lastApplied += 1
-		fmt.Println("Got majority , applying operation is local ")
-		res, err := s.metaStore.UpdateFile(ctx, filemeta)
-		return res, err
-	} else {
-		s.log = s.log[0 : len(s.log)-1]
-		return nil, ERR_NOT_LEADER
-	}
+	s.commitIndex += 1
+	s.lastApplied += 1
+	fmt.Println("Got majority , applying operation is local ")
+	res, err := s.metaStore.UpdateFile(ctx, filemeta)
+	return res, err
 
 }
 
