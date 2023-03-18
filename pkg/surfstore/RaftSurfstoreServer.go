@@ -360,6 +360,7 @@ func (s *RaftSurfstore) SendHeartbeat(ctx context.Context, _ *emptypb.Empty) (*S
 	}
 	fmt.Println("Sending heartbeat from ", s.serverId)
 
+	time.Sleep(50 * time.Millisecond)
 	tmp := make(chan *AppendEntryOutput)
 	for i := range s.config.RaftAddrs {
 		if i == int(s.serverId) {
