@@ -358,7 +358,6 @@ func (s *RaftSurfstore) SendHeartbeat(ctx context.Context, _ *emptypb.Empty) (*S
 	if !leader {
 		return nil, ERR_NOT_LEADER
 	}
-	time.Sleep(10 * time.Millisecond)
 	fmt.Println("Sending heartbeat from ", s.serverId)
 
 	tmp := make(chan *AppendEntryOutput)
